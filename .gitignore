@@ -45,3 +45,7 @@ tests/.excluded_sites
 
 # Vim swap files
 *.swp
+
+# Generated investigation HTML files (contain personal data)
+*_clue_web.html
+sherlock_bugmap.html

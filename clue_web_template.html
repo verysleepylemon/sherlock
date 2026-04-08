@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>线索网 — Clue Web</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0d14;font-family:'Segoe UI','Helvetica Neue',sans-serif;color:#c9d1d9;overflow:hidden;user-select:none}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#30363d;border-radius:2px}
+
+/* ── Layout shells ── */
+#app{position:fixed;inset:0;display:grid;
+  grid-template:"topbar topbar  topbar" 52px
+                 "lpanel canvas rpanel" 1fr
+                 "lpanel botbar rpanel" 44px
+  / 210px 1fr 0px;
+  transition:grid-template-columns 0.2s ease}
+#app.rp-open{grid-template-columns:210px 1fr 280px}
+
+/* ── Top bar ── */
+#topbar{
+  grid-area:topbar;display:flex;align-items:center;gap:10px;
+  padding:0 16px;background:#0d1117;border-bottom:1px solid #21262d;z-index:30}
+#logo{font-size:14px;font-weight:700;letter-spacing:2px;color:#e6b450;
+  text-transform:uppercase;white-space:nowrap;flex-shrink:0}
+.sep{width:1px;height:24px;background:#21262d;flex-shrink:0}
+#t-name{font-size:15px;font-weight:700;color:#f0f6fc;white-space:nowrap}
+#t-time{font-size:10px;color:#484f58;white-space:nowrap}
+.chip{background:#161b22;border:1px solid #21262d;border-radius:14px;
+  padding:3px 9px;font-size:11px;color:#8b949e;white-space:nowrap;flex-shrink:0}
+.chip b{color:#e6b450;font-weight:700}
+#t-search{
+  margin-left:auto;background:#161b22;border:1px solid #30363d;border-radius:6px;
+  color:#c9d1d9;font-size:12px;padding:5px 10px;width:180px;outline:none;
+  transition:border-color 0.15s}
+#t-search:focus{border-color:#58a6ff88}
+#t-search::placeholder{color:#484f58}
+.tbtn{background:#161b22;border:1px solid #30363d;border-radius:6px;
+  color:#8b949e;font-size:11px;padding:5px 10px;cursor:pointer;white-space:nowrap;
+  transition:all 0.12s;flex-shrink:0}
+.tbtn:hover{color:#c9d1d9;border-color:#58a6ff66;background:#1f6feb11}
+.tbtn.act{color:#58a6ff;border-color:#58a6ff;background:#1f6feb22}
+
+/* ── Left panel ── */
+#lpanel{
+  grid-area:lpanel;background:#0d1117;border-right:1px solid #21262d;
+  overflow-y:auto;z-index:20;display:flex;flex-direction:column}
+.lp-sec{padding:8px 0 4px;border-bottom:1px solid #21262d}
+.lp-hd{padding:6px 12px 4px;font-size:9px;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;color:#484f58;display:flex;align-items:center;gap:6px}
+.lp-hd .hint{font-size:8px;color:#30363d;font-weight:400;letter-spacing:0;margin-left:auto}
+
+/* view mode buttons */
+.view-row{display:flex;gap:4px;padding:4px 10px 6px}
+.vbtn{flex:1;background:#161b22;border:1px solid #30363d;border-radius:5px;
+  color:#484f58;font-size:10px;padding:4px 0;cursor:pointer;text-align:center;transition:all 0.12s}
+.vbtn:hover{color:#8b949e;border-color:#484f5888}
+.vbtn.act{color:#58a6ff;border-color:#58a6ff;background:#1f6feb22}
+
+/* variant list */
+.vpill{
+  display:flex;align-items:center;margin:2px 8px;padding:4px 8px;
+  background:#161b22;border:1px solid #21262d;border-radius:5px;
+  cursor:pointer;font-size:10px;font-family:monospace;color:#8b949e;
+  transition:all 0.12s;gap:4px}
+.vpill:hover{color:#58a6ff;border-color:#58a6ff66;background:#1f6feb11}
+.vpill.act{color:#58a6ff;border-color:#58a6ff;background:#1f6feb22}
+.vpill .vc{margin-left:auto;color:#e6b450;font-weight:700;font-family:'Segoe UI',sans-serif}
+.vpill .vd{font-size:8px;color:#30363d;margin-left:auto}
+
+/* category list */
+.cat-row{
+  display:flex;align-items:center;padding:4px 10px;cursor:pointer;
+  font-size:11px;color:#8b949e;gap:7px;transition:all 0.1s}
+.cat-row:hover{background:#161b2233;color:#c9d1d9}
+.cat-row.off{opacity:0.35}
+.cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cat-n{margin-left:auto;font-size:10px;color:#484f58}
+.cat-ck{width:12px;height:12px;border:1px solid #30363d;border-radius:2px;
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8px}
+.cat-row:not(.off) .cat-ck{background:#3fb95033;border-color:#3fb95055;color:#3fb950}
+
+/* legend */
+.leg{display:flex;align-items:center;gap:7px;padding:3px 12px;font-size:10px;color:#484f58}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.leg-hex{width:10px;height:10px;flex-shrink:0;display:inline-block}
+.leg-edge{display:flex;align-items:center;gap:7px;padding:2px 12px;font-size:10px;color:#484f58}
+.leg-line{height:0;flex-shrink:0}
+
+/* ── Canvas area ── */
+#canvas-area{grid-area:canvas;position:relative;overflow:hidden}
+#bgc,#mc{position:absolute;inset:0;width:100%;height:100%}
+#mc{cursor:default}
+
+/* ── Right context panel ── */
+#rpanel{
+  grid-area:rpanel;background:#0d1117;border-left:1px solid #21262d;
+  overflow:hidden;z-index:20;display:flex;flex-direction:column}
+#rp-head{
+  display:flex;align-items:center;gap:8px;padding:10px 12px 8px;
+  border-bottom:1px solid #21262d;flex-shrink:0}
+#rp-icon{font-size:18px;line-height:1}
+#rp-title{font-size:13px;font-weight:700;color:#f0f6fc;flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#rp-badge{font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  padding:2px 6px;border-radius:3px;flex-shrink:0}
+#rp-close{background:none;border:none;color:#484f58;font-size:14px;cursor:pointer;
+  flex-shrink:0;padding:2px}
+#rp-close:hover{color:#c9d1d9}
+#rp-body{flex:1;overflow-y:auto;padding:0 0 8px}
+.rp-empty{padding:32px 16px;text-align:center;color:#30363d;font-size:12px;line-height:1.8}
+
+/* context panel sections */
+.rp-sec{padding:8px 12px 4px;border-bottom:1px solid #21262d}
+.rp-sec-hd{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:#484f58;margin-bottom:6px}
+.rp-stat{display:flex;align-items:center;justify-content:space-between;
+  padding:2px 0;font-size:11px;color:#8b949e}
+.rp-stat b{color:#c9d1d9;font-weight:600}
+.rp-url{font-size:10px;color:#58a6ff;word-break:break-all;padding:2px 0;cursor:pointer}
+.rp-url:hover{text-decoration:underline}
+.rp-tag{display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;
+  margin:2px 2px 2px 0;border:1px solid #30363d;color:#8b949e}
+
+/* bar chart for categories */
+.bar-row{display:flex;align-items:center;gap:6px;margin:3px 0;font-size:10px}
+.bar-lbl{width:60px;color:#8b949e;text-align:right;flex-shrink:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;background:#161b22;border-radius:2px;height:6px;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px;transition:width 0.4s ease}
+.bar-n{width:24px;text-align:right;color:#484f58;flex-shrink:0}
+
+/* site list in context */
+.rp-site{
+  display:flex;align-items:center;padding:4px 12px;font-size:11px;
+  color:#8b949e;cursor:pointer;gap:6px;transition:all 0.1s}
+.rp-site:hover{background:#161b2233;color:#c9d1d9}
+.rp-site .rs-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.rp-site .rs-src{margin-left:auto;font-size:8px;color:#30363d;font-family:monospace}
+
+/* action buttons in context */
+#rp-actions{padding:10px 12px;display:flex;gap:6px;border-top:1px solid #21262d;flex-shrink:0}
+.rp-btn{flex:1;background:#161b22;border:1px solid #30363d;border-radius:5px;
+  color:#8b949e;font-size:11px;padding:6px 0;cursor:pointer;transition:all 0.12s;text-align:center}
+.rp-btn:hover{color:#c9d1d9;border-color:#58a6ff66;background:#1f6feb11}
+.rp-btn.primary{color:#58a6ff;border-color:#58a6ff66;background:#1f6feb22}
+.rp-btn.primary:hover{background:#1f6feb44}
+
+/* ── Bottom bar ── */
+#botbar{
+  grid-area:botbar;background:#0d1117;border-top:1px solid #21262d;
+  display:flex;align-items:center;padding:0 12px;gap:10px;z-index:20}
+#breadcrumb{flex:1;display:flex;align-items:center;gap:0;overflow:hidden;
+  white-space:nowrap;min-width:0}
+.bc-seg{font-size:11px;color:#484f58;cursor:pointer;padding:0 4px;
+  transition:color 0.1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+.bc-seg:hover{color:#c9d1d9}
+.bc-seg.act{color:#58a6ff}
+.bc-arrow{font-size:10px;color:#30363d;flex-shrink:0}
+#minimap-wrap{flex-shrink:0;position:relative}
+#minimap{
+  display:block;border:1px solid #21262d;border-radius:3px;cursor:pointer;
+  background:#070a0f}
+
+/* ── Tooltip ── */
+#tip{
+  position:fixed;z-index:50;background:#161b22f2;border:1px solid #30363d;
+  border-radius:7px;padding:9px 12px;max-width:240px;font-size:11px;
+  line-height:1.55;pointer-events:none;opacity:0;transition:opacity 0.1s;
+  box-shadow:0 6px 24px #00000099}
+.ti-name{font-size:12px;font-weight:700;margin-bottom:2px}
+.ti-cat{font-size:9px;opacity:0.6;margin-bottom:3px}
+.ti-url{font-size:9px;color:#8b949e;word-break:break-all}
+.ti-src{font-size:9px;color:#58a6ff;margin-top:3px}
+.ti-hint{font-size:9px;color:#3fb950;margin-top:2px}
+
+/* ── Toast ── */
+#toast{
+  position:fixed;bottom:60px;left:50%;transform:translateX(-50%);
+  background:#3fb95022;border:1px solid #3fb95066;color:#3fb950;
+  font-size:12px;padding:6px 16px;border-radius:6px;z-index:60;
+  opacity:0;transition:opacity 0.2s;pointer-events:none}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ── TOP BAR ── -->
+<div id="topbar">
+  <div id="logo">线索网</div>
+  <div class="sep"></div>
+  <div id="t-name"></div>
+  <div id="t-time"></div>
+  <div class="chip">Platforms <b id="c-total">-</b></div>
+  <div class="chip">Categories <b id="c-cats">-</b></div>
+  <div class="chip">Variants <b id="c-vars">-</b></div>
+  <div class="chip">Elapsed <b id="c-elapsed">-</b></div>
+  <input id="t-search" type="text" placeholder="Search platforms…" autocomplete="off">
+  <button class="tbtn" onclick="exportURLs()" title="Copy all found URLs to clipboard">⬇ Export</button>
+  <button class="tbtn" onclick="resetView(true)" title="Fit all (R)">⊙ Fit</button>
+  <button class="tbtn act" id="btn-depth" onclick="toggleDepthMode()" title="Depth impact coloring when selected">Depth</button>
+</div>
+
+<!-- ── LEFT PANEL ── -->
+<div id="lpanel">
+  <div class="lp-sec">
+    <div class="lp-hd">VIEW</div>
+    <div class="view-row">
+      <div class="vbtn act" data-v="web"    onclick="setView('web')">Web</div>
+      <div class="vbtn"     data-v="radial" onclick="setView('radial')">Radial</div>
+      <div class="vbtn"     data-v="focus"  onclick="setView('focus')">Focus</div>
+    </div>
+  </div>
+
+  <div class="lp-sec">
+    <div class="lp-hd">VARIANTS <span class="hint">click to isolate</span></div>
+    <div id="var-list"></div>
+  </div>
+
+  <div class="lp-sec">
+    <div class="lp-hd">CATEGORIES <span class="hint">click to toggle</span></div>
+    <div id="cat-list"></div>
+  </div>
+
+  <div class="lp-sec" style="border-bottom:0;margin-top:auto;padding-bottom:12px">
+    <div class="lp-hd">LEGEND</div>
+    <div class="leg"><canvas id="leg-hex" width="11" height="11"></canvas>Target</div>
+    <div class="leg"><div class="leg-dot" style="background:#58a6ff;box-shadow:0 0 4px #1f6feb66"></div>Variation</div>
+    <div class="leg"><div class="leg-dot" style="background:#3fb950;box-shadow:0 0 4px #3fb95055;border-radius:3px;transform:rotate(45deg)"></div>Category</div>
+    <div class="leg"><div class="leg-dot" style="background:#8b949e"></div>Platform (click→open)</div>
+    <div class="leg-edge" style="margin-top:6px">
+      <div class="leg-line" style="width:22px;border-top:1.5px solid #58a6ff88"></div>d=1 direct
+    </div>
+    <div class="leg-edge">
+      <div class="leg-line" style="width:22px;border-top:1px dashed #58a6ff44"></div>d=2 indirect
+    </div>
+    <div class="leg-edge">
+      <div class="leg-line" style="width:22px;border-top:1px dotted #484f5844"></div>d=3+ transitive
+    </div>
+    <div style="padding:8px 12px 0;font-size:9px;color:#30363d;line-height:1.7">
+      Wheel: zoom · RMB drag: pan<br>
+      LMB drag: move node · R: fit all<br>
+      Esc: deselect · Click site: open
+    </div>
+  </div>
+</div>
+
+<!-- ── CANVAS ── -->
+<div id="canvas-area">
+  <canvas id="bgc"></canvas>
+  <canvas id="mc"></canvas>
+</div>
+
+<!-- ── RIGHT CONTEXT PANEL ── -->
+<div id="rpanel">
+  <div id="rp-head" style="display:none">
+    <div id="rp-icon"></div>
+    <div id="rp-title"></div>
+    <div id="rp-badge"></div>
+    <button id="rp-close" onclick="closeCtx()">✕</button>
+  </div>
+  <div id="rp-body">
+    <div class="rp-empty">Click any node<br>to see context<br><br>
+      <span style="font-size:10px;color:#21262d">— GitNexus style —</span>
+    </div>
+  </div>
+  <div id="rp-actions" style="display:none">
+    <button class="rp-btn primary" id="rp-open"  onclick="rpOpenURL()">↗ Open</button>
+    <button class="rp-btn"         id="rp-copy"  onclick="rpCopyURL()">⎘ Copy URL</button>
+    <button class="rp-btn"         id="rp-focus" onclick="rpFocus()">⊙ Focus</button>
+  </div>
+</div>
+
+<!-- ── BOTTOM BAR ── -->
+<div id="botbar">
+  <div id="breadcrumb"></div>
+  <div id="minimap-wrap">
+    <canvas id="minimap" width="160" height="90" title="Click to pan canvas"></canvas>
+  </div>
+</div>
+
+<div id="tip"></div>
+<div id="toast"></div>
+
+<script>
+/*%%CLUE_DATA%%*/
+
+// ════════════════════════════════════════════════════════════
+//  Constants
+// ════════════════════════════════════════════════════════════
+const NT = { TARGET:'target', VAR:'var', CAT:'cat', SITE:'site' };
+const LP_W = 210;  // left panel width (CSS)
+const TB_H = 52;   // top bar height
+const BB_H = 44;   // bottom bar height
+// RP_W is managed by CSS grid, canvas-area resizes automatically
+const MIN_SCALE = 0.08, MAX_SCALE = 4;
+
+// ════════════════════════════════════════════════════════════
+//  State
+// ════════════════════════════════════════════════════════════
+let nodes = [], edges = [], nodeMap = {};
+let LAYOUTS = {}; // layout positions per view mode
+
+// Canvas transform (world → canvas-area local)
+let tx = 0, ty = 0, scale = 1;
+
+// Interaction
+let hovered = null, selected = null;
+let draggingNode = null, dnStart = null, dnOrig = null;
+let panning = false, panStart = null, panOrigin = null;
+let mouseDown = false, mouseButton = -1;
+
+// Filters
+let activeVar = null;
+let searchQ = '';
+let hiddenCats = new Set();
+
+// Depth
+let depths = null;   // BFS distances from selected node
+let depthMode = true;
+
+// View & breadcrumb
+let viewMode = 'web';
+let breadcrumb = [];  // array of nodeIds
+
+// Animation
+let pulseT = 0;
+
+// Canvas elements
+const bgC  = document.getElementById('bgc');
+const mc   = document.getElementById('mc');
+const bgX  = bgC.getContext('2d');
+const ctx  = mc.getContext('2d');
+const mmC  = document.getElementById('minimap');
+const mmX  = mmC.getContext('2d');
+let DPR = devicePixelRatio || 1;
+
+// ════════════════════════════════════════════════════════════
+//  Dimensions
+// ════════════════════════════════════════════════════════════
+function cW() { return document.getElementById('canvas-area').offsetWidth; }
+function cH() { return document.getElementById('canvas-area').offsetHeight; }
+
+// Convert canvas-area local → world
+function c2w(lx, ly) { return { x:(lx-tx)/scale, y:(ly-ty)/scale }; }
+// Convert world → canvas-area local
+function w2c(wx, wy) { return { x:wx*scale+tx, y:wy*scale+ty }; }
+
+// ════════════════════════════════════════════════════════════
+//  Graph builder
+// ════════════════════════════════════════════════════════════
+function buildGraph() {
+  nodes = []; edges = []; LAYOUTS = {};
+
+  // ── Target ──
+  nodes.push({
+    id:'#T', type:NT.TARGET, label:DATA.target, sub:`${DATA.total} found`,
+    x:0, y:0, r:30, color:'#e6b450', glow:'#e6b45044', url:null, cat:null,
+    sources:[], variant:null
+  });
+
+  // ── Variants ──
+  const vars = DATA.variations;
+  const r_v = 90;
+  vars.forEach((v, i) => {
+    const a = (i / vars.length) * Math.PI*2 - Math.PI/2;
+    const cnt = DATA.var_counts[v] || 0;
+    nodes.push({
+      id:`$V:${v}`, type:NT.VAR, label:v, sub:`${cnt}`, variant:v,
+      x: Math.cos(a)*r_v, y: Math.sin(a)*r_v, r:14,
+      color:'#58a6ff', glow:'#1f6feb33', url:null, cat:null, sources:[]
+    });
+    edges.push({ from:'#T', to:`$V:${v}`, w:1.2, base:'#58a6ff', dash:false });
+  });
+
+  // ── Categories ──
+  const catKeys = Object.keys(DATA.categories)
+    .filter(k => DATA.categories[k].length > 0)
+    .sort((a,b) => DATA.categories[b].length - DATA.categories[a].length);
+  const r_c = 220;
+  const catAngles = {};
+  catKeys.forEach((cat, i) => {
+    const a = (i / catKeys.length) * Math.PI*2 - Math.PI/2;
+    catAngles[cat] = a;
+    const meta = DATA.cat_meta[cat] || { color:'#607d8b' };
+    nodes.push({
+      id:`$C:${cat}`, type:NT.CAT, label:cat,
+      sub:`${DATA.categories[cat].length}`, variant:null,
+      x: Math.cos(a)*r_c, y: Math.sin(a)*r_c, r:20,
+      color:meta.color, glow:meta.color+'33', url:null, cat:cat, sources:[]
+    });
+    edges.push({ from:'#T', to:`$C:${cat}`, w:1.5, base:meta.color, dash:false });
+  });
+
+  // ── Sites ──
+  catKeys.forEach(cat => {
+    const sites = DATA.categories[cat];
+    const baseA = catAngles[cat];
+    const meta  = DATA.cat_meta[cat] || { color:'#607d8b' };
+    const spread = Math.min(Math.PI * 0.65, Math.max(0.3, sites.length * 0.11));
+    const r_s_base = 380;
+
+    sites.forEach((site, idx) => {
+      const t  = sites.length === 1 ? 0.5 : idx / (sites.length - 1);
+      const a  = baseA + (t - 0.5) * spread;
+      const rj = r_s_base + (idx % 4 - 1.5) * 18;
+      const nid = `$S:${site.site}`;
+      nodes.push({
+        id:nid, type:NT.SITE, label:site.site, sub:'', variant:null,
+        x: Math.cos(a)*rj, y: Math.sin(a)*rj,
+        r:8, color:meta.color, glow:meta.color+'22',
+        url:site.url, cat:cat, sources:site.sources || [], username:site.username
+      });
+      edges.push({ from:`$C:${cat}`, to:nid, w:0.8, base:meta.color, dash:false });
+
+      // Also link to variant node(s) that found this site (dashed)
+      (site.sources || []).forEach(src => {
+        edges.push({ from:`$V:${src}`, to:nid, w:0.4, base:'#58a6ff', dash:true });
+      });
+    });
+  });
+
+  nodeMap = {};
+  nodes.forEach(n => nodeMap[n.id] = n);
+
+  // Save web layout
+  LAYOUTS.web = nodes.map(n => ({ id:n.id, x:n.x, y:n.y }));
+  buildRadialLayout();
+}
+
+function buildRadialLayout() {
+  // Radial: categories spread on outer ring, sites tightly packed inside each
+  const catKeys = Object.keys(DATA.categories).filter(k=>DATA.categories[k].length>0);
+  const pos = {};
+  pos['#T'] = { x:0, y:0 };
+  const r_v = 70, r_c = 170, r_s = 290;
+  DATA.variations.forEach((v, i) => {
+    const a = (i/DATA.variations.length)*Math.PI*2 - Math.PI/2;
+    pos[`$V:${v}`] = { x:Math.cos(a)*r_v, y:Math.sin(a)*r_v };
+  });
+  catKeys.forEach((cat, i) => {
+    const a = (i/catKeys.length)*Math.PI*2 - Math.PI/2;
+    pos[`$C:${cat}`] = { x:Math.cos(a)*r_c, y:Math.sin(a)*r_c };
+    const sites = DATA.categories[cat];
+    sites.forEach((site, j) => {
+      const da = sites.length > 1 ? (j/(sites.length-1)-0.5)*0.4 : 0;
+      const sa = r_s + (j%3)*20;
+      pos[`$S:${site.site}`] = { x:Math.cos(a+da)*sa, y:Math.sin(a+da)*sa };
+    });
+  });
+  LAYOUTS.radial = pos;
+}
+
+function applyLayout(name) {
+  const layout = LAYOUTS[name];
+  if (!layout) return;
+  const entries = Array.isArray(layout) ? layout : Object.entries(layout).map(([id,p])=>({id,...p}));
+  entries.forEach(e => {
+    const n = nodeMap[e.id];
+    if (n) { n.x = e.x; n.y = e.y; }
+  });
+}
+
+function setView(v) {
+  viewMode = v;
+  document.querySelectorAll('.vbtn').forEach(b => b.classList.toggle('act', b.dataset.v===v));
+  applyLayout(v === 'focus' && selected ? 'web' : v);
+  if (v === 'focus' && selected) focusOnNode(selected);
+  else resetView(true);
+}
+
+// ════════════════════════════════════════════════════════════
+//  Resize & Background
+// ════════════════════════════════════════════════════════════
+function resize() {
+  DPR = devicePixelRatio || 1;
+  [bgC, mc].forEach(c => {
+    const w = c.offsetWidth, h = c.offsetHeight;
+    c.width  = w * DPR; c.height = h * DPR;
+  });
+  bgX.setTransform(DPR,0,0,DPR,0,0);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  drawBG();
+}
+
+function drawBG() {
+  const w = bgC.offsetWidth, h = bgC.offsetHeight;
+  bgX.clearRect(0,0,w,h);
+  const g = bgX.createRadialGradient(w/2,h/2,0,w/2,h/2,Math.max(w,h)*0.7);
+  g.addColorStop(0,'#0f1825'); g.addColorStop(1,'#0a0d14');
+  bgX.fillStyle = g; bgX.fillRect(0,0,w,h);
+
+  bgX.strokeStyle='#ffffff05'; bgX.lineWidth=0.5;
+  for (let x=0;x<w;x+=48){bgX.beginPath();bgX.moveTo(x,0);bgX.lineTo(x,h);bgX.stroke();}
+  for (let y=0;y<h;y+=48){bgX.beginPath();bgX.moveTo(0,y);bgX.lineTo(w,y);bgX.stroke();}
+}
+
+// ════════════════════════════════════════════════════════════
+//  Zoom / Pan
+// ════════════════════════════════════════════════════════════
+function resetView(animate) {
+  if (!nodes.length) return;
+  const xs = nodes.map(n=>n.x), ys = nodes.map(n=>n.y);
+  const pad = 60;
+  const bx = Math.min(...xs)-pad, bX = Math.max(...xs)+pad;
+  const by = Math.min(...ys)-pad, bY = Math.max(...ys)+pad;
+  const sx = cW()/(bX-bx), sy = cH()/(bY-by);
+  scale = Math.min(sx, sy, 1.5) * 0.88;
+  tx = cW()/2 - ((bx+bX)/2)*scale;
+  ty = cH()/2 - ((by+bY)/2)*scale;
+}
+
+function zoomAt(cx, cy, factor) {
+  const wx = (cx-tx)/scale, wy = (cy-ty)/scale;
+  scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale*factor));
+  tx = cx - wx*scale; ty = cy - wy*scale;
+}
+
+function focusOnNode(n) {
+  const cx = cW()/2, cy = cH()/2;
+  const tgt_scale = Math.min(1.4, scale * 1.5);
+  tx = cx - n.x * tgt_scale;
+  ty = cy - n.y * tgt_scale;
+  scale = tgt_scale;
+}
+
+// ════════════════════════════════════════════════════════════
+//  BFS depth from selected node
+// ════════════════════════════════════════════════════════════
+function computeDepths(startId) {
+  const d = {}; const q = [[startId,0]]; const vis = new Set([startId]);
+  while (q.length) {
+    const [id,dep] = q.shift(); d[id] = dep;
+    edges.forEach(e => {
+      let nb = null;
+      if (e.from===id) nb=e.to; else if (e.to===id) nb=e.from;
+      if (nb && !vis.has(nb)) { vis.add(nb); q.push([nb, dep+1]); }
+    });
+  }
+  return d;
+}
+
+function nodeAlpha(n) {
+  // Search filter
+  if (searchQ) {
+    const hit = n.label.toLowerCase().includes(searchQ) ||
+                (n.url||'').toLowerCase().includes(searchQ);
+    if (!hit && n.type===NT.SITE) return 0.06;
+  }
+  // Category hidden
+  if (n.cat && hiddenCats.has(n.cat)) return 0;
+  // Variant filter
+  if (activeVar) {
+    if (n.type===NT.SITE && !(n.sources||[]).includes(activeVar)) return 0.05;
+    if (n.type===NT.CAT) {
+      const hasSite = (DATA.categories[n.cat]||[]).some(s=>(s.sources||[]).includes(activeVar));
+      if (!hasSite) return 0.05;
+    }
+    if (n.type===NT.VAR && n.variant !== activeVar) return 0.25;
+  }
+  // Depth
+  if (depthMode && depths && n.id !== selected?.id) {
+    const d = depths[n.id] ?? 99;
+    if (d===1) return 1;
+    if (d===2) return 0.6;
+    if (d===3) return 0.3;
+    if (d > 3) return 0.07;
+  }
+  return 1;
+}
+
+function edgeAlpha(e) {
+  const a = nodeMap[e.from], b = nodeMap[e.to];
+  if (!a || !b) return 0;
+  const na = nodeAlpha(a), nb = nodeAlpha(b);
+  if (na < 0.1 || nb < 0.1) return 0;
+  if (e.dash && !activeVar) return 0; // hide variant→site dashes in default view
+  if (e.dash && activeVar) {
+    const to = nodeMap[e.to];
+    if (!to || !(to.sources||[]).includes(activeVar)) return 0;
+    if (e.from !== `$V:${activeVar}`) return 0;
+  }
+  if (depthMode && depths) {
+    const da = depths[e.from]??99, db = depths[e.to]??99;
+    const d = Math.min(da,db);
+    if (d<=1) return 1;
+    if (d===2) return 0.45;
+    if (d===3) return 0.2;
+    return 0.04;
+  }
+  return 0.7;
+}
+
+// ════════════════════════════════════════════════════════════
+//  Drawing
+// ════════════════════════════════════════════════════════════
+function hexPath2d(cx,cy,r) {
+  ctx.beginPath();
+  for (let i=0;i<6;i++){
+    const a=(i/6)*Math.PI*2-Math.PI/6;
+    i===0?ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a))
+         :ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));
+  }
+  ctx.closePath();
+}
+
+function drawEdge(e) {
+  const a = nodeMap[e.from], b = nodeMap[e.to];
+  if (!a||!b) return;
+  const al = edgeAlpha(e); if (al < 0.01) return;
+  const hl = (hovered && (hovered.id===e.from||hovered.id===e.to));
+
+  const lw = hl ? e.w*2.2 : e.w;
+  const c  = e.base;
+  const opacity = hl ? Math.min(al*1.5,1) : al;
+
+  const gl = ctx.createLinearGradient(a.x,a.y,b.x,b.y);
+  gl.addColorStop(0,hexAlpha(c, opacity*0.5));
+  gl.addColorStop(1,hexAlpha(c, opacity));
+  ctx.save();
+  ctx.strokeStyle = gl; ctx.lineWidth = lw/scale;
+  if (e.dash) ctx.setLineDash([3/scale, 5/scale]);
+  ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+  ctx.setLineDash([]); ctx.restore();
+
+  // Animated particle on highlighted or selected edges
+  if (hl || (selected && (selected.id===e.from||selected.id===e.to))) {
+    const t = (pulseT * 0.6) % 1;
+    const px = a.x+(b.x-a.x)*t, py = a.y+(b.y-a.y)*t;
+    ctx.beginPath(); ctx.arc(px,py,2.5/scale,0,Math.PI*2);
+    ctx.fillStyle = hexAlpha(c,0.9);
+    ctx.shadowColor=c; ctx.shadowBlur=8; ctx.fill(); ctx.shadowBlur=0;
+  }
+}
+
+function drawNode(n) {
+  const al = nodeAlpha(n); if (al < 0.01) return;
+  const { x,y, r, color, glow, type } = n;
+  const isH = n === hovered;
+  const isSel = n === selected;
+  const nr = r + (isH||isSel ? 2.5 : 0);
+  const dep = depths ? (depths[n.id]??99) : 0;
+
+  ctx.save(); ctx.globalAlpha = al;
+
+  // Glow halo
+  const glR = nr*(isH||isSel ? 3.5 : 2.2);
+  const gr = ctx.createRadialGradient(x,y,nr*0.2,x,y,glR);
+  gr.addColorStop(0, glow); gr.addColorStop(1,'transparent');
+  ctx.beginPath(); ctx.arc(x,y,glR,0,Math.PI*2); ctx.fillStyle=gr; ctx.fill();
+
+  ctx.shadowColor=color+(isH||isSel?'99':'44');
+  ctx.shadowBlur=(isH||isSel?20:10)/scale;
+
+  // Shape
+  if (type===NT.TARGET) hexPath2d(x,y,nr);
+  else if (type===NT.CAT) {
+    // Diamond
+    ctx.beginPath();
+    ctx.moveTo(x,y-nr); ctx.lineTo(x+nr*0.85,y);
+    ctx.lineTo(x,y+nr); ctx.lineTo(x-nr*0.85,y);
+    ctx.closePath();
+  } else {
+    ctx.beginPath(); ctx.arc(x,y,nr,0,Math.PI*2);
+  }
+
+  const bg = ctx.createRadialGradient(x,y-nr*0.3,nr*0.05,x,y,nr);
+  bg.addColorStop(0, darken(color,0.7)+'ff');
+  bg.addColorStop(1, darken(color,0.45)+'dd');
+  ctx.fillStyle=bg; ctx.fill();
+
+  // Selection ring
+  if (isSel) {
+    ctx.strokeStyle=color+'ff'; ctx.lineWidth=2/scale;
+    ctx.shadowColor=color; ctx.shadowBlur=16/scale;
+  } else if (isH) {
+    ctx.strokeStyle=color+'dd'; ctx.lineWidth=1.5/scale;
+  } else {
+    ctx.strokeStyle=color+(dep>2?'55':'99'); ctx.lineWidth=1/scale;
+  }
+  if (type===NT.TARGET) hexPath2d(x,y,nr);
+  else if (type===NT.CAT) {
+    ctx.beginPath();
+    ctx.moveTo(x,y-nr); ctx.lineTo(x+nr*0.85,y);
+    ctx.lineTo(x,y+nr); ctx.lineTo(x-nr*0.85,y); ctx.closePath();
+  } else { ctx.beginPath(); ctx.arc(x,y,nr,0,Math.PI*2); }
+  ctx.stroke();
+  ctx.shadowBlur=0; ctx.restore();
+
+  // Labels (in world space, will be scaled)
+  if (al < 0.4 && type===NT.SITE) return;
+  ctx.save(); ctx.globalAlpha = al;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+
+  if (type===NT.TARGET) {
+    ctx.fillStyle=color; ctx.font=`bold ${11/scale}px 'Segoe UI',sans-serif`;
+    ctx.fillText(trunc(n.label,14),x,y-4/scale);
+    ctx.fillStyle=color+'bb'; ctx.font=`${8.5/scale}px 'Segoe UI',sans-serif`;
+    ctx.fillText(n.sub,x,y+7/scale);
+  } else if (type===NT.CAT) {
+    ctx.fillStyle=color; ctx.font=`bold ${8/scale}px 'Segoe UI',sans-serif`;
+    ctx.fillText(trunc(n.label,9),x,y-3/scale);
+    ctx.fillStyle=color+'aa'; ctx.font=`${7/scale}px 'Segoe UI',sans-serif`;
+    ctx.fillText(n.sub,x,y+5/scale);
+  } else if (type===NT.VAR) {
+    ctx.fillStyle=color+'cc'; ctx.font=`${7.5/scale}px monospace`;
+    ctx.textBaseline='top';
+    ctx.fillText(trunc(n.label,14),x,y+nr+3/scale);
+  } else if (type===NT.SITE && (isH||isSel||scale>0.8)) {
+    ctx.fillStyle= isSel ? color : color+'cc';
+    ctx.font=`${isSel?'bold ':''}${Math.max(7,7/scale)}px 'Segoe UI',sans-serif`;
+    ctx.textBaseline='top';
+    ctx.fillText(trunc(n.label,15),x,y+nr+2/scale);
+  }
+  ctx.restore();
+}
+
+function render(ts=0) {
+  pulseT = ts * 0.001;
+  const W = bgC.offsetWidth || cW(), H = bgC.offsetHeight || cH();
+  ctx.clearRect(0,0,W,H);
+
+  // Apply zoom/pan transform
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0,0,W,H); ctx.clip();
+  ctx.setTransform(scale*DPR,0,0,scale*DPR, tx*DPR, ty*DPR);
+
+  // Draw edges (non-dashed first, then dashed)
+  edges.filter(e=>!e.dash).forEach(drawEdge);
+  edges.filter(e=> e.dash).forEach(drawEdge);
+
+  // Draw nodes
+  nodes.forEach(drawNode);
+
+  ctx.restore();
+
+  drawMinimap();
+  requestAnimationFrame(render);
+}
+
+// ════════════════════════════════════════════════════════════
+//  Minimap
+// ════════════════════════════════════════════════════════════
+function drawMinimap() {
+  const MW = 160, MH = 90;
+  mmX.clearRect(0,0,MW,MH);
+  mmX.fillStyle='#070a0f'; mmX.fillRect(0,0,MW,MH);
+  if (!nodes.length) return;
+
+  const xs=nodes.map(n=>n.x), ys=nodes.map(n=>n.y);
+  const minX=Math.min(...xs)-40, maxX=Math.max(...xs)+40;
+  const minY=Math.min(...ys)-40, maxY=Math.max(...ys)+40;
+  const scaleM = Math.min(MW/(maxX-minX), MH/(maxY-minY)) * 0.88;
+  const offX = MW/2 - (minX+maxX)/2*scaleM;
+  const offY = MH/2 - (minY+maxY)/2*scaleM;
+
+  // Draw edges
+  edges.filter(e=>!e.dash).forEach(e => {
+    const a=nodeMap[e.from],b=nodeMap[e.to]; if(!a||!b) return;
+    const al=edgeAlpha(e); if(al<0.05) return;
+    mmX.strokeStyle=hexAlpha(e.base,al*0.4);
+    mmX.lineWidth=0.5;
+    mmX.beginPath();
+    mmX.moveTo(a.x*scaleM+offX, a.y*scaleM+offY);
+    mmX.lineTo(b.x*scaleM+offX, b.y*scaleM+offY);
+    mmX.stroke();
+  });
+
+  // Draw nodes
+  nodes.forEach(n => {
+    const al=nodeAlpha(n); if(al<0.05) return;
+    const mx=n.x*scaleM+offX, my=n.y*scaleM+offY;
+    const mr = Math.max(1.5, n.r*scaleM*0.5);
+    mmX.beginPath(); mmX.arc(mx,my,mr,0,Math.PI*2);
+    mmX.fillStyle=hexAlpha(n.color,al*(n===selected?1:0.7));
+    mmX.fill();
+  });
+
+  // Viewport rectangle
+  const vpX = (-tx/scale)*scaleM+offX;
+  const vpY = (-ty/scale)*scaleM+offY;
+  const vpW = (cW()/scale)*scaleM;
+  const vpH = (cH()/scale)*scaleM;
+  mmX.strokeStyle='#58a6ff55'; mmX.lineWidth=1;
+  mmX.strokeRect(vpX,vpY,vpW,vpH);
+  mmX.fillStyle='#58a6ff08'; mmX.fillRect(vpX,vpY,vpW,vpH);
+
+  // Store for click hit
+  mmC._scaleM=scaleM; mmC._offX=offX; mmC._offY=offY;
+}
+
+// ════════════════════════════════════════════════════════════
+//  Hit test (canvas-area local coords)
+// ════════════════════════════════════════════════════════════
+function hitTest(lx, ly) {
+  const { x:wx, y:wy } = c2w(lx, ly);
+  // Reverse order so top-rendered nodes are hit first
+  for (let i=nodes.length-1;i>=0;i--) {
+    const n=nodes[i];
+    if (nodeAlpha(n) < 0.1) continue;
+    const dx=wx-n.x, dy=wy-n.y;
+    if (Math.sqrt(dx*dx+dy*dy) <= n.r + 6/scale) return n;
+  }
+  return null;
+}
+
+// ════════════════════════════════════════════════════════════
+//  Tooltip
+// ════════════════════════════════════════════════════════════
+const tipEl = document.getElementById('tip');
+function showTip(n, cx, cy) {
+  const meta = n.cat ? (DATA.cat_meta[n.cat]||{color:n.color}) : {color:n.color};
+  let html='';
+  if (n.type===NT.TARGET) {
+    html=`<div class="ti-name" style="color:#e6b450">${n.label}</div>
+<div class="ti-cat">Investigation Target</div>
+<div class="ti-url">${DATA.total} platforms · ${DATA.variations.length} variants checked</div>`;
+  } else if (n.type===NT.VAR) {
+    html=`<div class="ti-name" style="color:#58a6ff">${n.label}</div>
+<div class="ti-cat">Username Variation</div>
+<div class="ti-url">${n.sub} platforms found with this variant</div>`;
+  } else if (n.type===NT.CAT) {
+    html=`<div class="ti-name" style="color:${meta.color}">${n.label}</div>
+<div class="ti-cat">Category · ${n.sub} platforms</div>`;
+  } else {
+    html=`<div class="ti-name" style="color:${meta.color}">${n.label}</div>
+<div class="ti-cat">${n.cat}</div>
+<div class="ti-url">${n.url}</div>
+<div class="ti-src">via: ${(n.sources||[]).join(', ')}</div>
+<div class="ti-hint">↗ Click to open</div>`;
+  }
+  tipEl.innerHTML=html; tipEl.style.opacity='1';
+  let tx=cx+14, ty=cy-8;
+  if (tx+250>window.innerWidth) tx=cx-260;
+  if (ty+160>window.innerHeight) ty=window.innerHeight-170;
+  if (ty<58) ty=58;
+  tipEl.style.left=tx+'px'; tipEl.style.top=ty+'px';
+}
+function hideTip() { tipEl.style.opacity='0'; }
+
+// ════════════════════════════════════════════════════════════
+//  Context panel
+// ════════════════════════════════════════════════════════════
+function openCtx(n) {
+  selected = n;
+  depths = depthMode ? computeDepths(n.id) : null;
+  updateBreadcrumb(n);
+
+  const app = document.getElementById('app');
+  app.classList.add('rp-open');
+  setTimeout(resize, 210); // after CSS transition
+
+  const head = document.getElementById('rp-head');
+  const body = document.getElementById('rp-body');
+  const acts = document.getElementById('rp-actions');
+  head.style.display='flex';
+  acts.style.display = n.type===NT.SITE ? 'flex' : 'none';
+
+  // Header
+  const icons = { target:'🔎', var:'⇄', cat:'◈', site:'↗' };
+  document.getElementById('rp-icon').textContent = icons[n.type]||'●';
+  document.getElementById('rp-title').textContent = n.label;
+  const badgeColors = { target:'#e6b450', var:'#58a6ff', cat:n.color, site:n.color };
+  const rp_badge = document.getElementById('rp-badge');
+  rp_badge.textContent = n.type.toUpperCase();
+  rp_badge.style.background = (badgeColors[n.type]||'#8b949e')+'22';
+  rp_badge.style.color       = badgeColors[n.type]||'#8b949e';
+  rp_badge.style.border      = `1px solid ${badgeColors[n.type]||'#8b949e'}44`;
+
+  // Body
+  let html='';
+  if (n.type===NT.TARGET) {
+    html += rpSec('OVERVIEW', `
+      <div class="rp-stat"><span>Platforms found</span><b>${DATA.total}</b></div>
+      <div class="rp-stat"><span>Categories</span><b>${Object.keys(DATA.categories).filter(k=>DATA.categories[k].length).length}</b></div>
+      <div class="rp-stat"><span>Variants checked</span><b>${DATA.variations.length}</b></div>
+      <div class="rp-stat"><span>Elapsed</span><b>${DATA.elapsed}s</b></div>
+    `);
+    // Category bar chart
+    const cats = Object.keys(DATA.categories).filter(k=>DATA.categories[k].length)
+      .sort((a,b)=>DATA.categories[b].length-DATA.categories[a].length);
+    const max = DATA.categories[cats[0]]?.length||1;
+    html += rpSec('CATEGORY BREAKDOWN',
+      cats.map(c=>{
+        const meta=DATA.cat_meta[c]||{color:'#607d8b'};
+        const cnt=DATA.categories[c].length;
+        const pct=Math.round(cnt/max*100);
+        return `<div class="bar-row">
+<div class="bar-lbl" style="color:${meta.color}">${c}</div>
+<div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${meta.color}"></div></div>
+<div class="bar-n">${cnt}</div></div>`;
+      }).join('')
+    );
+    html += rpSec('VARIANTS',
+      DATA.variations.map(v=>`
+<div class="rp-stat"><span style="font-family:monospace;font-size:10px">${v}</span>
+<b>${DATA.var_counts[v]||0} found</b></div>`).join('')
+    );
+
+  } else if (n.type===NT.VAR) {
+    const cnt = DATA.var_counts[n.variant]||0;
+    html += rpSec('VARIANT INFO', `
+      <div class="rp-stat"><span>Username</span><b style="font-family:monospace">${n.label}</b></div>
+      <div class="rp-stat"><span>Platforms found</span><b>${cnt}</b></div>
+    `);
+    // Sites grouped by category
+    const found = [];
+    Object.entries(DATA.categories).forEach(([cat, sites]) => {
+      sites.filter(s=>(s.sources||[]).includes(n.variant)).forEach(s=>found.push({...s,cat}));
+    });
+    const byCat = {};
+    found.forEach(s=>{ (byCat[s.cat]=byCat[s.cat]||[]).push(s); });
+    Object.entries(byCat).forEach(([cat, sites]) => {
+      const meta=DATA.cat_meta[cat]||{color:'#607d8b'};
+      html += `<div class="rp-sec"><div class="rp-sec-hd">${cat} (${sites.length})</div>`;
+      sites.forEach(s=>{
+        html+=`<div class="rp-site" onclick="window.open('${s.url}','_blank')">
+<div class="rs-dot" style="background:${meta.color}"></div>${s.site}</div>`;
+      });
+      html+='</div>';
+    });
+
+  } else if (n.type===NT.CAT) {
+    const sites = DATA.categories[n.cat]||[];
+    const meta = DATA.cat_meta[n.cat]||{color:'#607d8b'};
+    html += rpSec('CATEGORY INFO', `
+      <div class="rp-stat"><span>Platforms in category</span><b>${sites.length}</b></div>
+      <div class="rp-stat"><span>Variants that found any</span>
+        <b>${DATA.variations.filter(v=>sites.some(s=>(s.sources||[]).includes(v))).length}</b></div>
+    `);
+    html += rpSec(`SITES (${sites.length}) — click to open`,
+      sites.map(s=>`
+<div class="rp-site" onclick="window.open('${s.url}','_blank')">
+<div class="rs-dot" style="background:${meta.color}"></div>${s.site}
+<span class="rs-src">${(s.sources||[]).join(', ')}</span></div>`).join('')
+    );
+
+  } else if (n.type===NT.SITE) {
+    const meta = DATA.cat_meta[n.cat]||{color:'#607d8b'};
+    const similar = (DATA.categories[n.cat]||[]).filter(s=>s.site!==n.label);
+    html += rpSec('PROFILE', `
+      <div class="rp-url" onclick="window.open('${n.url}','_blank')" title="${n.url}">↗ ${n.url}</div>
+    `);
+    html += rpSec('DETAILS', `
+      <div class="rp-stat"><span>Category</span>
+        <b style="color:${meta.color}">${n.cat}</b></div>
+      <div class="rp-stat"><span>Found via</span>
+        <b>${(n.sources||[]).map(s=>`<span class="rp-tag">${s}</span>`).join(' ')}</b></div>
+      <div class="rp-stat"><span>Related in ${n.cat}</span><b>${similar.length} more</b></div>
+    `);
+    if (similar.length) {
+      html += rpSec(`RELATED IN ${n.cat.toUpperCase()}`,
+        similar.slice(0,8).map(s=>`
+<div class="rp-site" onclick="window.open('${s.url}','_blank')">
+<div class="rs-dot" style="background:${meta.color}"></div>${s.site}</div>`).join('')
+        + (similar.length>8 ? `<div style="padding:4px 12px;font-size:10px;color:#484f58">+${similar.length-8} more</div>` : '')
+      );
+    }
+    // Store current URL for actions
+    document.getElementById('rp-open').dataset.url = n.url;
+    document.getElementById('rp-copy').dataset.url = n.url;
+  }
+
+  body.innerHTML = html;
+}
+
+function rpSec(title, content) {
+  return `<div class="rp-sec"><div class="rp-sec-hd">${title}</div>${content}</div>`;
+}
+
+function closeCtx() {
+  selected=null; depths=null; breadcrumb=[];
+  document.getElementById('app').classList.remove('rp-open');
+  document.getElementById('rp-head').style.display='none';
+  document.getElementById('rp-body').innerHTML=
+    '<div class="rp-empty">Click any node<br>to see context<br><br><span style="font-size:10px;color:#21262d">— GitNexus style —</span></div>';
+  document.getElementById('rp-actions').style.display='none';
+  document.getElementById('breadcrumb').innerHTML='';
+  setTimeout(resize, 210);
+}
+
+function rpOpenURL()  { const u=document.getElementById('rp-open').dataset.url; if(u) window.open(u,'_blank'); }
+function rpCopyURL()  { const u=document.getElementById('rp-copy').dataset.url; if(u) { navigator.clipboard.writeText(u); toast('Copied!'); } }
+function rpFocus()    { if(selected){focusOnNode(selected);} }
+
+// ════════════════════════════════════════════════════════════
+//  Breadcrumb
+// ════════════════════════════════════════════════════════════
+function updateBreadcrumb(n) {
+  // Build path: target → (variant if applicable) → (category) → site
+  breadcrumb = ['#T'];
+  if (n.type===NT.VAR) breadcrumb.push(n.id);
+  else if (n.type===NT.CAT) breadcrumb.push(n.id);
+  else if (n.type===NT.SITE) {
+    if (n.sources&&n.sources[0]) breadcrumb.push(`$V:${n.sources[0]}`);
+    breadcrumb.push(`$C:${n.cat}`);
+    breadcrumb.push(n.id);
+  }
+  renderBreadcrumb();
+}
+
+function renderBreadcrumb() {
+  const bc = document.getElementById('breadcrumb');
+  if (!breadcrumb.length) { bc.innerHTML=''; return; }
+  const parts = breadcrumb.map((id,i) => {
+    const n=nodeMap[id]; if(!n) return '';
+    const isLast=i===breadcrumb.length-1;
+    return `<span class="bc-seg${isLast?' act':''}" onclick="selectNode('${id}')"
+      style="color:${isLast?n.color:'#8b949e'}">${trunc(n.label,18)}</span>
+${isLast?'':'<span class="bc-arrow"> › </span>'}`;
+  });
+  bc.innerHTML=parts.join('');
+}
+
+function selectNode(id) {
+  const n=nodeMap[id]; if(n) openCtx(n);
+}
+
+// ════════════════════════════════════════════════════════════
+//  Sidebar: variants + categories
+// ════════════════════════════════════════════════════════════
+function buildSidebar() {
+  // Variants
+  const vl = document.getElementById('var-list');
+  vl.innerHTML = DATA.variations.map(v => {
+    const cnt = DATA.var_counts[v]||0;
+    return `<div class="vpill" data-v="${v}" onclick="toggleVar('${v}')">
+<span style="flex:1;overflow:hidden;text-overflow:ellipsis">${v}</span>
+<span class="vc">${cnt}</span></div>`;
+  }).join('');
+
+  // Categories
+  const cl = document.getElementById('cat-list');
+  const cats = Object.keys(DATA.categories)
+    .filter(k=>DATA.categories[k].length)
+    .sort((a,b)=>DATA.categories[b].length-DATA.categories[a].length);
+  cl.innerHTML = cats.map(cat => {
+    const meta=DATA.cat_meta[cat]||{color:'#607d8b'};
+    const cnt=DATA.categories[cat].length;
+    return `<div class="cat-row" data-cat="${cat}" onclick="toggleCat('${cat}')">
+<div class="cat-ck">✓</div>
+<div class="cat-dot" style="background:${meta.color}"></div>
+<span title="${cat}">${cat}</span>
+<span class="cat-n">${cnt}</span></div>`;
+  }).join('');
+}
+
+function toggleVar(v) {
+  activeVar = activeVar===v ? null : v;
+  document.querySelectorAll('.vpill').forEach(el =>
+    el.classList.toggle('act', el.dataset.v===activeVar));
+}
+
+function toggleCat(cat) {
+  if (hiddenCats.has(cat)) hiddenCats.delete(cat);
+  else hiddenCats.add(cat);
+  document.querySelectorAll('.cat-row').forEach(el =>
+    el.classList.toggle('off', hiddenCats.has(el.dataset.cat)));
+}
+
+function toggleDepthMode() {
+  depthMode = !depthMode;
+  depths = depthMode && selected ? computeDepths(selected.id) : null;
+  document.getElementById('btn-depth').classList.toggle('act', depthMode);
+}
+
+// ════════════════════════════════════════════════════════════
+//  Export
+// ════════════════════════════════════════════════════════════
+function exportURLs() {
+  const urls = [];
+  Object.values(DATA.categories).forEach(sites =>
+    sites.forEach(s => {
+      if (!activeVar || (s.sources||[]).includes(activeVar)) urls.push(s.url);
+    })
+  );
+  navigator.clipboard.writeText(urls.join('\n')).then(()=>toast(`Copied ${urls.length} URLs`));
+}
+
+// ════════════════════════════════════════════════════════════
+//  Stats fill
+// ════════════════════════════════════════════════════════════
+function fillStats() {
+  document.getElementById('t-name').textContent = DATA.target;
+  document.getElementById('t-time').textContent = `(${DATA.ts})`;
+  document.getElementById('c-total').textContent = DATA.total;
+  document.getElementById('c-cats').textContent =
+    Object.keys(DATA.categories).filter(k=>DATA.categories[k].length).length;
+  document.getElementById('c-vars').textContent = DATA.variations.length;
+  document.getElementById('c-elapsed').textContent = DATA.elapsed+'s';
+  document.title = `线索网 · ${DATA.target} — ${DATA.total} found`;
+}
+
+// ════════════════════════════════════════════════════════════
+//  Events
+// ════════════════════════════════════════════════════════════
+mc.addEventListener('mousedown', e => {
+  const lx=e.offsetX, ly=e.offsetY;
+  mouseDown=true; mouseButton=e.button;
+  if (e.button===0) {
+    const h=hitTest(lx,ly);
+    if (h) {
+      draggingNode=h; dnStart={x:lx,y:ly};
+      dnOrig={x:h.x,y:h.y}; mc.style.cursor='grabbing';
+    }
+  }
+  if (e.button===2||e.button===1) {
+    panning=true; panStart={x:e.clientX,y:e.clientY}; panOrigin={x:tx,y:ty};
+    mc.style.cursor='grabbing'; e.preventDefault();
+  }
+});
+
+mc.addEventListener('mousemove', e => {
+  const lx=e.offsetX, ly=e.offsetY;
+  if (panning) {
+    tx = panOrigin.x + e.clientX - panStart.x;
+    ty = panOrigin.y + e.clientY - panStart.y;
+    return;
+  }
+  if (draggingNode && dnStart) {
+    const moved = Math.abs(e.clientX-dnStart.x)+Math.abs(e.clientY-dnStart.y);
+    if (moved > 4) {
+      const w = c2w(lx,ly);
+      draggingNode.x=w.x; draggingNode.y=w.y;
+    }
+    return;
+  }
+  const h=hitTest(lx,ly);
+  if (h!==hovered) {
+    hovered=h;
+    mc.style.cursor=h?(h.url?'pointer':'crosshair'):'default';
+  }
+  h ? showTip(h,e.clientX,e.clientY) : hideTip();
+});
+
+mc.addEventListener('mouseup', e => {
+  const wasDraggingNode = !!draggingNode;
+  const wasPanning = panning;
+  const upX=e.offsetX, upY=e.offsetY;
+
+  if (draggingNode && dnStart) {
+    const dx=upX-dnStart.x, dy=upY-dnStart.y;
+    if (Math.abs(dx)+Math.abs(dy) < 5) { // it was a click
+      const n=draggingNode;
+      if (n.type===NT.SITE) window.open(n.url,'_blank');
+      else openCtx(n);
+    }
+    draggingNode=null; dnStart=null; dnOrig=null;
+  }
+  panning=false; mouseDown=false; mouseButton=-1;
+  mc.style.cursor = hovered?(hovered.url?'pointer':'crosshair'):'default';
+});
+
+mc.addEventListener('wheel', e => {
+  e.preventDefault();
+  const factor = e.deltaY < 0 ? 1.12 : 1/1.12;
+  zoomAt(e.offsetX, e.offsetY, factor);
+}, { passive:false });
+
+mc.addEventListener('contextmenu', e => e.preventDefault());
+mc.addEventListener('mouseleave', () => { hovered=null; hideTip(); });
+
+mc.addEventListener('dblclick', e => { resetView(true); });
+
+// Keyboard
+window.addEventListener('keydown', e => {
+  if (e.key==='Escape') closeCtx();
+  if (e.key==='r'||e.key==='R') resetView(true);
+  if (e.key==='+'||e.key==='=') zoomAt(cW()/2,cH()/2,1.2);
+  if (e.key==='-') zoomAt(cW()/2,cH()/2,1/1.2);
+});
+
+// Search
+document.getElementById('t-search').addEventListener('input', e => {
+  searchQ = e.target.value.trim().toLowerCase();
+});
+
+// Minimap click
+mmC.addEventListener('click', e => {
+  const { _scaleM=1, _offX=0, _offY=0 } = mmC;
+  const mx=e.offsetX, my=e.offsetY;
+  const wx=(mx-_offX)/_scaleM, wy=(my-_offY)/_scaleM;
+  tx = cW()/2 - wx*scale; ty = cH()/2 - wy*scale;
+});
+
+window.addEventListener('resize', () => { resize(); drawBG(); });
+
+// ════════════════════════════════════════════════════════════
+//  Utilities
+// ════════════════════════════════════════════════════════════
+function hexAlpha(hex, a) {
+  const h = hex.replace('#','').slice(0,6);
+  return '#'+h+Math.round(Math.max(0,Math.min(1,a))*255).toString(16).padStart(2,'0');
+}
+function darken(hex, f) {
+  hex=hex.replace('#','');
+  if(hex.length===3) hex=hex.split('').map(c=>c+c).join('');
+  return '#'+[0,2,4].map(i=>Math.min(255,Math.round(parseInt(hex.slice(i,i+2),16)*f))
+    .toString(16).padStart(2,'0')).join('');
+}
+function trunc(s,n) { return s&&s.length>n?s.slice(0,n-1)+'…':s||''; }
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+// ════════════════════════════════════════════════════════════
+//  Boot
+// ════════════════════════════════════════════════════════════
+buildGraph();
+resize();
+drawBG();
+resetView(false);
+buildSidebar();
+fillStats();
+
+// Draw hexagon in legend
+(function(){
+  const lc=document.getElementById('leg-hex');
+  if(!lc) return;
+  const lx=lc.getContext('2d');
+  lx.beginPath();
+  for(let i=0;i<6;i++){const a=(i/6)*Math.PI*2-Math.PI/6;i===0?lx.moveTo(5.5+4.5*Math.cos(a),5.5+4.5*Math.sin(a)):lx.lineTo(5.5+4.5*Math.cos(a),5.5+4.5*Math.sin(a));}
+  lx.closePath();
+  lx.strokeStyle='#e6b450'; lx.lineWidth=1.5;
+  lx.fillStyle='#e6b45022'; lx.fill(); lx.stroke();
+})();
+
+requestAnimationFrame(render);
+</script>
+</body>
+</html>
