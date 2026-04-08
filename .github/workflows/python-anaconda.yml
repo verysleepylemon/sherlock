@@ -64,4 +64,4 @@ jobs:
 
       - name: Verify investigate.py loads
         run: |
-          python investigate.py --help
+          python -X utf8 investigate.py --help
