@@ -393,6 +393,20 @@ python investigate.py sleepy_lemonade --timeout 20
 - **[GitNexus](https://gitnexus.dev)** — Code intelligence engine whose call graph analysis identified the 9 bugs, and whose spider-web visualization interface inspired the Clue Web UI design
 - **线索网 (Clue Web)** investigation layer — Built using GitNexus + Sherlock synergy
 
+## Documentation
+
+Detailed documentation is available in the [`wiki/`](wiki/) folder:
+
+| Page | Description |
+|------|-------------|
+| [Home](wiki/Home.md) | Overview and table of contents |
+| [Architecture](wiki/Architecture.md) | System architecture, node types, data flow |
+| [Bug Fixes Detailed](wiki/Bug-Fixes-Detailed.md) | Deep dive into all 9 bugs and their fixes |
+| [Clue Web UI Guide](wiki/Clue-Web-UI-Guide.md) | Full guide to every feature of the investigation board |
+| [Username Variation Engine](wiki/Username-Variation-Engine.md) | How variations are generated and why they matter |
+| [GitNexus Integration](wiki/GitNexus-Integration.md) | How GitNexus was used throughout this project |
+| [FAQ](wiki/FAQ.md) | Frequently Asked Questions |
+
 ## License
 
 This project is a fork of [Sherlock](https://github.com/sherlock-project/sherlock), licensed under the [MIT License](LICENSE).
