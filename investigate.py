@@ -11,7 +11,14 @@ Usage:
     python investigate.py "sleepy lemonade" --max-variations 6
 """
 
-import subprocess, sys, json, re, time, webbrowser, argparse, textwrap
+import argparse
+import json
+import re
+import subprocess
+import sys
+import textwrap
+import time
+import webbrowser
 from datetime import datetime
 from pathlib import Path
 from collections import defaultdict
@@ -745,7 +752,7 @@ def main():
     variations = generate_variations(target)[:args.max_variations]
 
     print(f"\n{'═'*62}")
-    print(f"  线索网  ·  Clue Web Investigation")
+    print("  线索网  ·  Clue Web Investigation")
     print(f"{'═'*62}")
     print(f"  Target     : {target}")
     print(f"  Variations : {', '.join(variations)}")

@@ -1,6 +1,9 @@
 """Generate demo assets for README: terminal GIF + UI mockup PNG."""
+import math
+import os
+import random
+
 from PIL import Image, ImageDraw, ImageFont
-import struct, io, os
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS = os.path.join(DIR, 'assets')
@@ -148,7 +151,6 @@ print(f'✓ Terminal GIF → {gif_path}')
 # ═══════════════════════════════════════════════════════════
 #  2. Clue Web UI Mockup PNG
 # ═══════════════════════════════════════════════════════════
-import math, random
 random.seed(42)
 
 def draw_ui_mockup():

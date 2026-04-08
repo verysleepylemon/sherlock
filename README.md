@@ -8,6 +8,10 @@
   <a href="https://python.org"><img src="https://img.shields.io/badge/python-3.10+-3776AB?logo=python&logoColor=white" alt="Python 3.10+"></a>
   <a href="https://github.com/sherlock-project/sherlock"><img src="https://img.shields.io/badge/sherlock-v0.16.0_patched-brightgreen" alt="Sherlock v0.16.0"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+  <br>
+  <a href="https://github.com/verysleepylemon/sherlock/actions/workflows/python-anaconda.yml"><img src="https://github.com/verysleepylemon/sherlock/actions/workflows/python-anaconda.yml/badge.svg" alt="Python Package (Anaconda)"></a>
+  <a href="https://github.com/verysleepylemon/sherlock/actions/workflows/pylint.yml"><img src="https://github.com/verysleepylemon/sherlock/actions/workflows/pylint.yml/badge.svg" alt="Pylint"></a>
+  <a href="https://github.com/verysleepylemon/sherlock/actions/workflows/regression.yml"><img src="https://github.com/verysleepylemon/sherlock/actions/workflows/regression.yml/badge.svg" alt="Regression Testing"></a>
 </p>
 <p align="center">
   <strong>Sherlock</strong> 🔍 + <strong>GitNexus</strong> 🕷️ = <strong>线索网</strong><br>
