@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://python.org"><img src="https://img.shields.io/badge/python-3.10+-3776AB?logo=python&logoColor=white" alt="Python 3.10+"></a>
-  <a href="https://github.com/sherlock-project/sherlock"><img src="https://img.shields.io/badge/sherlock-v0.16.0_patched-brightgreen" alt="Sherlock v0.16.0"></a>
+  <a href="https://github.com/soxoj/maigret"><img src="https://img.shields.io/badge/maigret-3000%2B_sites-brightgreen" alt="Maigret 3000+ sites"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
   <br>
   <a href="https://github.com/verysleepylemon/sherlock/actions/workflows/python-anaconda.yml"><img src="https://github.com/verysleepylemon/sherlock/actions/workflows/python-anaconda.yml/badge.svg" alt="Python Package (Anaconda)"></a>
@@ -14,9 +14,8 @@
   <a href="https://github.com/verysleepylemon/sherlock/actions/workflows/regression.yml"><img src="https://github.com/verysleepylemon/sherlock/actions/workflows/regression.yml/badge.svg" alt="Regression Testing"></a>
 </p>
 <p align="center">
-  <strong>Sherlock</strong> 🔍 + <strong>GitNexus</strong> 🕷️ = <strong>线索网</strong><br>
-  <em>A visual OSINT investigation tool that maps digital footprints across 400+ platforms<br>into an interactive spider-web intelligence board.</em>
-</p>
+  <strong>Maigret</strong> 🔍 + <strong>GitNexus</strong> 🕷️ = <strong>线索网</strong><br>
+  <em>A visual OSINT investigation tool that maps digital footprints across 3000+ platforms<br>into an interactive spider-web intelligence board with automatic profile parsing.</em>   
 
 <p align="center">
   <strong>🌐 README in other languages:</strong><br>
@@ -46,20 +45,23 @@
 
 ## What Is This?
 
-This is a **forked and enhanced** version of [Sherlock](https://github.com/sherlock-project/sherlock) — the well-known username OSINT tool. On top of the original Sherlock, this fork adds:
+This is an **enhanced OSINT investigation platform** powered by [Maigret](https://github.com/soxoj/maigret) — the advanced username OSINT tool that checks **3000+ sites** with built-in profile page parsing. On top of Maigret's engine, this project adds:
 
-1. **9 Bug Fixes** — identified by reverse-engineering the codebase with [GitNexus](https://gitnexus.dev) code intelligence (2 critical, 5 medium, 1 bug, 1 minor)
-2. **线索网 (Clue Web)** — a full-featured investigation visualization that generates interactive HTML boards, inspired by GitNexus's spider-web graph
+1. **线索网 (Clue Web)** — a full-featured investigation visualization that generates interactive HTML boards, inspired by GitNexus's spider-web graph
+2. **Automatic Profile Parsing** — extracts names, bios, profile images, locations, follower counts, and linked accounts from found profiles
+3. **Username Variation Engine** — generates format variations (underscores, dots, dashes, reversed) and checks each one
+4. **Media Gallery** — browse all extracted photos, bios, names, and locations in a filterable gallery
+5. **Person Intelligence** — aggregated personal data summary across all found platforms
 
 ---
 
-## How GitNexus and Sherlock Work Together
+## How Maigret and GitNexus Work Together
 
 | Component | Role |
 |-----------|------|
-| **GitNexus** | Code intelligence engine — reverse-engineered Sherlock's call graph, traced execution flows, identified 9 bugs across 3 files. Its spider-web visualization inspired the Clue Web UI. |
-| **Sherlock** (patched) | Core username enumeration engine — checks 400+ platforms. This fork includes all 9 bug fixes. |
-| **线索网 (Clue Web)** | Investigation visualization layer — renders Sherlock's output as an interactive node graph with zoom, pan, filtering, depth coloring, and context panels. |
+| **Maigret** | Core username enumeration engine — checks 3000+ platforms with profile page parsing, extracts personal data (names, bios, images, locations, followers, links) via socid-extractor. |
+| **GitNexus** | Code intelligence engine — its spider-web visualization inspired the Clue Web UI. |
+| **线索网 (Clue Web)** | Investigation visualization layer — renders findings as an interactive node graph with profile images, personal data panels, media gallery, and person intelligence summary. |
 
 ---
 
@@ -78,7 +80,7 @@ python -m venv .venv
 source .venv/bin/activate
 
 # Install dependencies
-pip install -e .
+pip install maigret
 
 # Run investigation
 python investigate.py <username>
@@ -156,7 +158,7 @@ The tool automatically generates alternate forms of the target username:
 |-------|---------------------|
 | `sleepy_lemonade` | `sleepy_lemonade`, `sleepylemonade`, `sleepy.lemonade`, `sleepy-lemonade`, `sleepyLemonade`, `SleepyLemonade`, `lemonade_sleepy`, `lemonadesleepy` |
 
-Each variation is searched across 400+ platforms, results are deduplicated, and combined findings are visualized in the Clue Web.
+Each variation is searched across 3000+ platforms, results are deduplicated, and combined findings are visualized in the Clue Web.
 
 ---
 
@@ -165,8 +167,9 @@ Each variation is searched across 400+ platforms, results are deduplicated, and 
 | Flag | Default | Description |
 |------|---------|-------------|
 | `username` | (required) | Target username to investigate |
-| `--timeout` | `10` | Timeout per site in seconds |
+| `--timeout` | `15` | Timeout per site in seconds |
 | `--max-variations` | `8` | Maximum username variations to generate |
+| `--top-sites` | `500` | Max sites from maigret DB (0 = all 3000+) |
 | `--no-browser` | `false` | Don't auto-open the HTML result |
 
 ---
@@ -175,18 +178,12 @@ Each variation is searched across 400+ platforms, results are deduplicated, and 
 
 ```
 sherlock/
-├── investigate.py              # 线索网 investigation runner
+├── investigate.py              # 线索网 investigation runner (Maigret engine)
 ├── clue_web_template.html      # GitNexus-style visualization template
 ├── assets/
 │   ├── banner.png              # Repository banner
 │   ├── demo_terminal.gif       # Terminal output demo
 │   └── clue_web_ui.png         # UI mockup screenshot
-├── sherlock_project/
-│   ├── sherlock.py             # Core engine (5 bugs fixed)
-│   ├── notify.py               # Result notification (2 bugs fixed)
-│   ├── sites.py                # Site definitions (2 bugs fixed)
-│   └── resources/
-│       └── data.json           # 400+ platform definitions
 ├── wiki/                       # Detailed documentation
 ├── README.md                   # English (this file)
 ├── README.zh-CN.md             # 简体中文
@@ -212,9 +209,10 @@ sherlock/
 
 ## Credits
 
-- **[Sherlock Project](https://github.com/sherlock-project/sherlock)** — Original OSINT username enumeration tool
-- **[GitNexus](https://gitnexus.dev)** — Code intelligence engine: call graph analysis found the 9 bugs, spider-web visualization inspired the Clue Web UI
-- **线索网 (Clue Web)** — Built with GitNexus + Sherlock synergy
+- **[Maigret](https://github.com/soxoj/maigret)** — Advanced OSINT username enumeration engine with profile page parsing (3000+ sites)
+- **[Sherlock Project](https://github.com/sherlock-project/sherlock)** — Original OSINT username enumeration tool (inspiration)
+- **[GitNexus](https://gitnexus.dev)** — Code intelligence engine: spider-web visualization inspired the Clue Web UI
+- **线索网 (Clue Web)** — Built with Maigret + GitNexus synergy
 
 ### Animation System
 

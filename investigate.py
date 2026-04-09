@@ -2,7 +2,8 @@
 """
 线索网 (Clue Web) — OSINT Username Investigation Tool
 
-Runs username + all name variations through fixed Sherlock v0.16.0,
+Runs username + all name variations through Maigret (3000+ sites),
+with profile page parsing enabled to extract personal data,
 then generates an interactive spider-web investigation board.
 
 Usage:
@@ -12,13 +13,17 @@ Usage:
 """
 
 import argparse
+import asyncio
 import json
+import logging
 import re
-import subprocess
 import sys
 import textwrap
 import time
 import webbrowser
+import concurrent.futures
+import urllib.request
+import urllib.parse
 from datetime import datetime
 from pathlib import Path
 from collections import defaultdict
@@ -122,36 +127,216 @@ def generate_variations(username: str) -> list:
     return out
 
 
-# ─── Sherlock runner ─────────────────────────────────────────────────────────
-def run_sherlock(username: str, timeout: int = 15) -> list:
+# ─── Maigret runner ──────────────────────────────────────────────────────────
+async def run_maigret_async(username: str, timeout: int = 15, top_sites: int = 500) -> list:
+    """Run maigret search for a single username and return list of found profiles."""
+    from maigret import MaigretDatabase
+    import maigret as maigret_pkg
+    from maigret.maigret import maigret as maigret_search
+    from maigret.result import MaigretCheckStatus
+
+    logger = logging.getLogger('maigret')
+    logger.setLevel(logging.ERROR)
+
+    db = MaigretDatabase().load_from_path(
+        str(Path(maigret_pkg.__file__).parent / 'resources' / 'data.json')
+    )
+    site_dict = db.ranked_sites_dict(top=top_sites)
+
+    results_dict = await maigret_search(
+        username=username,
+        site_dict=site_dict,
+        logger=logger,
+        timeout=timeout,
+        is_parsing_enabled=True,
+        max_connections=50,
+        no_progressbar=True,
+        retries=1,
+    )
+
     results = []
-    cmd = [
-        sys.executable, '-m', 'sherlock_project.sherlock',
-        '--timeout', str(timeout),
-        '--no-color', '--local',
-        username
-    ]
-    try:
-        proc = subprocess.run(
-            cmd, capture_output=True, text=True,
-            cwd=str(SHERLOCK_DIR), timeout=timeout * 60
-        )
-        for line in proc.stdout.splitlines():
-            m = re.match(r'\[\+\]\s+(.+?):\s+(https?://\S+)', line)
-            if m:
-                site = m.group(1).strip()
-                url  = m.group(2).strip()
-                results.append({
-                    'site':     site,
-                    'url':      url,
-                    'username': username,
-                    'category': categorize(site, url),
-                })
-    except subprocess.TimeoutExpired:
-        print(f"  ⏱  Timeout for '{username}'")
-    except Exception as e:
-        print(f"  ✗  Error: {e}")
+    for site_name, data in results_dict.items():
+        if not data:
+            continue
+        status = data.get('status')
+        if not status or status.status != MaigretCheckStatus.CLAIMED:
+            continue
+
+        url = data.get('url_user', '')
+        ids = status.ids_data or {}
+        tags = list(status.tags) if status.tags else []
+
+        # Sanitize ids_data for JSON serialization
+        safe_ids = {}
+        for k, v in ids.items():
+            if isinstance(v, (str, int, float, bool)):
+                safe_ids[k] = v
+            elif isinstance(v, list):
+                safe_ids[k] = [str(x) for x in v]
+            else:
+                safe_ids[k] = str(v)
+
+        results.append({
+            'site':     site_name,
+            'url':      url,
+            'username': username,
+            'category': categorize(site_name, url),
+            'tags':     tags,
+            # Extracted personal data from profile page parsing
+            'fullname':    ids.get('fullname', ids.get('name', '')),
+            'bio':         ids.get('bio', ids.get('description', '')),
+            'image':       ids.get('image', ids.get('avatar_url', '')),
+            'location':    ids.get('location', ids.get('country', '')),
+            'created_at':  ids.get('created_at', ''),
+            'links':       [str(x) for x in ids.get('links', [])],
+            'followers':   str(ids.get('followers_count', ids.get('followers', ''))),
+            'following':   str(ids.get('following_count', ids.get('following', ''))),
+            'ids_data':    safe_ids,
+        })
     return results
+
+
+def run_maigret(username: str, timeout: int = 15, top_sites: int = 500) -> list:
+    """Sync wrapper for the async maigret search."""
+    return asyncio.run(run_maigret_async(username, timeout, top_sites))
+
+
+# ─── Profile enrichment ───────────────────────────────────────────────────────
+_META_RE_PROP_CONTENT = re.compile(
+    r'<meta\s+[^>]*?property\s*=\s*["\']og:(\w+)["\'][^>]*?content\s*=\s*["\']([^"\']*)["\']',
+    re.I | re.S
+)
+_META_RE_CONTENT_PROP = re.compile(
+    r'<meta\s+[^>]*?content\s*=\s*["\']([^"\']*)["\'][^>]*?property\s*=\s*["\']og:(\w+)["\']',
+    re.I | re.S
+)
+_META_DESC = re.compile(
+    r'<meta\s+[^>]*?name\s*=\s*["\']description["\'][^>]*?content\s*=\s*["\']([^"\']*)["\']',
+    re.I | re.S
+)
+_META_TW_IMG = re.compile(
+    r'<meta\s+[^>]*?(?:name|property)\s*=\s*["\']twitter:image["\'][^>]*?content\s*=\s*["\']([^"\']*)["\']',
+    re.I | re.S
+)
+_TITLE_RE = re.compile(r'<title[^>]*>([^<]{1,200})</title>', re.I | re.S)
+
+# Platform-specific avatar URL patterns (no HTTP needed)
+_AVATAR_PATTERNS = {
+    'github':      'https://github.com/{}.png?size=200',
+    'gitlab':      'https://gitlab.com/uploads/-/system/user/avatar/{}/avatar.png',
+    'reddit':      None,  # needs og:image
+    'twitter':     None,
+    'instagram':   None,
+    'steam':       None,
+    'twitch':      None,
+}
+
+
+def _extract_og(html_bytes: bytes) -> dict:
+    """Extract Open Graph metadata from raw HTML bytes."""
+    text = html_bytes.decode('utf-8', errors='ignore')
+    data = {'og_image': '', 'og_title': '', 'og_description': '', 'page_title': ''}
+
+    for m in _META_RE_PROP_CONTENT.finditer(text):
+        prop, val = m.group(1).lower(), m.group(2).strip()
+        key = f'og_{prop}'
+        if key in data and not data[key]:
+            data[key] = val
+
+    for m in _META_RE_CONTENT_PROP.finditer(text):
+        val, prop = m.group(1).strip(), m.group(2).lower()
+        key = f'og_{prop}'
+        if key in data and not data[key]:
+            data[key] = val
+
+    if not data['og_description']:
+        m = _META_DESC.search(text)
+        if m:
+            data['og_description'] = m.group(1).strip()
+
+    if not data['og_image']:
+        m = _META_TW_IMG.search(text)
+        if m:
+            data['og_image'] = m.group(1).strip()
+
+    m = _TITLE_RE.search(text)
+    if m:
+        data['page_title'] = m.group(1).strip()
+
+    return data
+
+
+def enrich_profiles(merged: dict, timeout_sec: int = 8) -> dict:
+    """Fetch OG metadata from each found profile URL in parallel."""
+    enriched = {}
+
+    def fetch_one(key_and_item):
+        key, item = key_and_item
+        url = item['url']
+        try:
+            domain = urllib.parse.urlparse(url).hostname or ''
+        except Exception:
+            domain = ''
+
+        result = {
+            'og_image': '', 'og_title': '', 'og_description': '',
+            'page_title': '', 'favicon': '',
+            'avatar_url': '',
+        }
+
+        # Direct avatar patterns
+        site_lower = item['site'].lower()
+        username = item.get('username', '')
+        for pat_key, pat in _AVATAR_PATTERNS.items():
+            if pat and pat_key in site_lower and username:
+                result['avatar_url'] = pat.format(username)
+                break
+
+        # Favicon via Google
+        if domain:
+            result['favicon'] = f'https://www.google.com/s2/favicons?domain={domain}&sz=64'
+
+        # Fetch og: metadata
+        try:
+            req = urllib.request.Request(url, headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                              'AppleWebKit/537.36 (KHTML, like Gecko) '
+                              'Chrome/124.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml',
+                'Accept-Language': 'en-US,en;q=0.9',
+            })
+            with urllib.request.urlopen(req, timeout=timeout_sec) as resp:
+                raw = resp.read(65536)  # first 64KB
+                og = _extract_og(raw)
+                for k, v in og.items():
+                    if v and not result.get(k):
+                        result[k] = v
+        except Exception:
+            pass
+
+        # Fallback avatar: use og_image if no specific avatar
+        if not result['avatar_url'] and result['og_image']:
+            result['avatar_url'] = result['og_image']
+
+        return key, result
+
+    pairs = list(merged.items())
+    print(f"\n  Enriching {len(pairs)} profiles…", end=' ', flush=True)
+    t0 = time.time()
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as ex:
+        futures = [ex.submit(fetch_one, p) for p in pairs]
+        for f in concurrent.futures.as_completed(futures):
+            try:
+                k, d = f.result()
+                enriched[k] = d
+            except Exception:
+                pass
+
+    n_img = sum(1 for v in enriched.values() if v.get('og_image') or v.get('avatar_url'))
+    n_desc = sum(1 for v in enriched.values() if v.get('og_description'))
+    print(f"done ({time.time()-t0:.1f}s) — {n_img} images, {n_desc} bios found")
+    return enriched
 
 
 # ─── HTML builder ─────────────────────────────────────────────────────────────
@@ -166,21 +351,62 @@ def build_html(target: str, var_results: dict, elapsed: float) -> str:
             else:
                 if variant not in merged[key]['sources']:
                     merged[key]['sources'].append(variant)
+                # Merge any richer data from this variant
+                for field in ('fullname','bio','image','location','created_at','followers','following'):
+                    if item.get(field) and not merged[key].get(field):
+                        merged[key][field] = item[field]
+
+    # Enrich profiles with OG metadata (supplements maigret data)
+    enriched = enrich_profiles(merged)
+    for key, item in merged.items():
+        if key in enriched:
+            e = enriched[key]
+            # Only fill gaps — maigret data takes priority
+            if not item.get('image') and (e.get('avatar_url') or e.get('og_image')):
+                item['image'] = e.get('avatar_url') or e.get('og_image')
+            if not item.get('bio') and e.get('og_description'):
+                item['bio'] = e['og_description']
+            # Always merge these supplementary fields
+            for f in ('og_image','og_title','og_description','page_title','favicon','avatar_url'):
+                if e.get(f):
+                    item.setdefault(f, e[f])
 
     # Group by category
     cat_map: dict = defaultdict(list)
     for v in merged.values():
         cat_map[v['category']].append(v)
 
+    # Media stats
+    media_stats = {
+        'photos': sum(1 for v in merged.values()
+                      if v.get('image') or v.get('og_image') or v.get('avatar_url')),
+        'bios': sum(1 for v in merged.values()
+                    if v.get('bio') or v.get('og_description')),
+        'titles': sum(1 for v in merged.values()
+                      if v.get('fullname') or v.get('og_title') or v.get('page_title')),
+        'locations': sum(1 for v in merged.values() if v.get('location')),
+        'names': sum(1 for v in merged.values() if v.get('fullname')),
+    }
+
+    # Build supposed personal data summary
+    supposed_data = {}
+    for v in merged.values():
+        for field in ('fullname','bio','location','created_at','followers','following'):
+            val = v.get(field)
+            if val:
+                supposed_data.setdefault(field, []).append(str(val))
+
     payload = {
-        'target':     target,
-        'variations': list(var_results.keys()),
-        'var_counts': {k: len(v) for k, v in var_results.items()},
-        'categories': {k: list(v) for k, v in cat_map.items()},
-        'total':      len(merged),
-        'elapsed':    round(elapsed, 1),
-        'ts':         datetime.now().strftime('%Y-%m-%d %H:%M'),
-        'cat_meta':   CAT_META,
+        'target':        target,
+        'variations':    list(var_results.keys()),
+        'var_counts':    {k: len(v) for k, v in var_results.items()},
+        'categories':    {k: list(v) for k, v in cat_map.items()},
+        'total':         len(merged),
+        'elapsed':       round(elapsed, 1),
+        'ts':            datetime.now().strftime('%Y-%m-%d %H:%M'),
+        'cat_meta':      CAT_META,
+        'media_stats':   media_stats,
+        'supposed_data': supposed_data,
     }
 
     data_js = json.dumps(payload, ensure_ascii=False)
@@ -745,6 +971,8 @@ def main():
     parser.add_argument('--timeout',   type=int, default=15, help='HTTP timeout per site (default: 15s)')
     parser.add_argument('--max-variations', type=int, default=8,
                         help='Max name variations to check (default: 8)')
+    parser.add_argument('--top-sites', type=int, default=500,
+                        help='Max sites from maigret DB to check (default: 500, use 0 for all)')
     parser.add_argument('--no-browser', action='store_true', help='Do not auto-open the HTML')
     args = parser.parse_args()
 
@@ -757,6 +985,8 @@ def main():
     print(f"  Target     : {target}")
     print(f"  Variations : {', '.join(variations)}")
     print(f"  Timeout    : {args.timeout}s / site")
+    print(f"  Engine     : Maigret (3000+ sites, profile parsing enabled)")
+    print(f"  Top sites  : {args.top_sites if args.top_sites else 'ALL'}")
     print(f"{'─'*62}")
 
     var_results: dict = {}
@@ -765,9 +995,11 @@ def main():
     for i, variant in enumerate(variations, 1):
         print(f"  [{i}/{len(variations)}] {variant!r:<24} ", end='', flush=True)
         ts = time.time()
-        results = run_sherlock(variant, args.timeout)
+        top = args.top_sites if args.top_sites else 0
+        results = run_maigret(variant, args.timeout, top_sites=top if top else 500)
         var_results[variant] = results
-        print(f"→  {len(results):>3} found   ({time.time()-ts:.0f}s)")
+        n_data = sum(1 for r in results if r.get('fullname') or r.get('bio') or r.get('image'))
+        print(f"→  {len(results):>3} found ({n_data} with data)   ({time.time()-ts:.0f}s)")
 
     elapsed    = time.time() - t0
     all_sites  = {item['site'].lower() for items in var_results.values() for item in items}
