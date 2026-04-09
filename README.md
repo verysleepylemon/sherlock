@@ -40,7 +40,7 @@
   <img src="assets/clue_web_ui.png" alt="Clue Web UI — interactive investigation board" width="100%">
 </p>
 
-<p align="center"><em>Interactive spider-web graph with zoom, pan, depth coloring, context panels, minimap, and more — inspired by <a href="https://gitnexus.dev">GitNexus</a></em></p>
+<p align="center"><em>Physics-based floating particle network with water drift, spring connections, platform favicons, and break/reconnect mechanics — inspired by <a href="https://gitnexus.dev">GitNexus</a></em></p>
 
 ---
 
@@ -95,21 +95,40 @@ The HTML investigation board opens automatically in your browser.
 
 ## Clue Web Features (GitNexus-Inspired)
 
+### 🌊 Physics Engine
+
+The Clue Web uses a custom **Canvas 2D verlet integration** physics engine — every node floats, drifts, and connects like objects suspended in water.
+
+| Feature | Description |
+|---------|-------------|
+| **Water Drift** | Sine-wave flow fields create organic, ocean-like movement across all particles |
+| **Spring Connections** | Edges behave as springs (k=0.0003) — stretch, compress, and transmit force between nodes |
+| **Break / Reconnect** | Connections snap when pulled beyond 240px and automatically reform when particles drift within 140px |
+| **Buoyancy** | Gentle upward force (0.015) keeps the network floating with natural bobbing |
+| **Mouse Repulsion** | Cursor pushes nearby particles away (radius 160px, force 0.8) — like dragging your hand through water |
+| **Damping** | Velocity damping (0.985) prevents runaway physics while keeping motion alive |
+
+### 🎨 Visual Design
+
+| Feature | Description |
+|---------|-------------|
+| **Deep Ocean Theme** | Dark teal background with animated caustic light beams and floating plankton particles |
+| **Platform Favicons** | Site nodes display real favicons loaded via DuckDuckGo icon API |
+| **Node Types** | TARGET (hexagon), VARIANT (circle), CATEGORY (diamond), SITE (circle with favicon) |
+| **Connection Fading** | Edges thin and fade as they stretch, visually showing strain before breaking |
+| **Category Colors** | Social=#e91e63, Gaming=#9c27b0, Tech=#2196f3, Creative=#ff9800, Finance=#4caf50, Forums=#00bcd4, Academic=#ff7043, Other=#607d8b |
+
+### 🕹️ Interaction
+
 | Feature | Description |
 |---------|-------------|
 | **Zoom & Pan** | Mouse wheel to zoom, right-click drag to pan |
-| **Node Drag** | Left-click drag any node to reposition |
-| **Depth Impact Coloring** | BFS from selected node: d=1 bright → d=2 medium → d=3+ dim (like GitNexus blast radius) |
-| **Context Panel** | Click any node → right panel shows 360° view per type (TARGET / VARIANT / CATEGORY / SITE) |
-| **Variant Filter** | Click a username variant → isolates only that variant's found platforms |
-| **Category Toggles** | Show/hide categories (Social, Gaming, Tech, Creative, Finance, Forums, Academic, Other) |
-| **Real-Time Search** | Type to dim non-matching nodes |
-| **Minimap** | Bottom-right minimap with viewport rectangle — click to teleport |
-| **Breadcrumb** | Clickable navigation: Target → Variant → Category → Site |
-| **Export** | One-click copy all URLs to clipboard |
-| **Keyboard Shortcuts** | `R` = fit view, `Esc` = deselect, `+/-` = zoom, double-click = reset |
-| **View Modes** | Web (default) / Radial / Focus layouts |
-| **Animated Edges** | Particle animation on highlighted connections |
+| **Node Drag** | Left-click drag any node to reposition — physics resumes on release |
+| **Context Panel** | Click any node → right sidebar shows detailed breakdown per type |
+| **Real-Time Search** | Type to filter/dim non-matching nodes |
+| **Export** | One-click copy all found URLs to clipboard |
+| **Keyboard Shortcuts** | `R` = fit view, `Esc` = deselect |
+| **Physics Toggle** | Pause/resume the physics simulation |
 
 ---
 
@@ -196,6 +215,14 @@ sherlock/
 - **[Sherlock Project](https://github.com/sherlock-project/sherlock)** — Original OSINT username enumeration tool
 - **[GitNexus](https://gitnexus.dev)** — Code intelligence engine: call graph analysis found the 9 bugs, spider-web visualization inspired the Clue Web UI
 - **线索网 (Clue Web)** — Built with GitNexus + Sherlock synergy
+
+### Animation System
+
+The Clue Web particle physics engine is built from scratch using **Canvas 2D verlet integration** with spring constraints and water drift forces. Inspired by:
+
+- **[tsParticles](https://particles.js.org/)** — Interactive particle library (visual design inspiration)
+- **[Particulate.js](https://particulatejs.org/)** — Verlet physics engine (constraint model inspiration)
+- **[DuckDuckGo Icon API](https://icons.duckduckgo.com/)** — CORS-friendly favicon provider for platform node images
 
 ## License
 
