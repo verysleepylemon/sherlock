@@ -182,8 +182,19 @@ body{background:#0a0d14;font-family:'Segoe UI','Helvetica Neue',sans-serif;color
 .rp-tag{display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;
   margin:2px 2px 2px 0;border:1px solid #30363d;color:#8b949e}
 
-/* bar chart for categories */
-.bar-row{display:flex;align-items:center;gap:6px;margin:3px 0;font-size:10px}
+/* auth-wall banner in context panel */
+.auth-wall-banner{
+  margin:10px 12px 4px;
+  padding:8px 12px;
+  background:#ff7b7211;
+  border:1px solid #ff7b7244;
+  border-radius:6px;
+  font-size:11px;
+  color:#ff7b72;
+  line-height:1.5;
+}
+.auth-wall-banner .aw-title{font-weight:700;margin-bottom:2px}
+.auth-wall-banner .aw-note{font-size:9px;color:#ff7b7299}
 .bar-lbl{width:60px;color:#8b949e;text-align:right;flex-shrink:0;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bar-track{flex:1;background:#161b22;border-radius:2px;height:6px;overflow:hidden}
@@ -356,6 +367,10 @@ body{background:#0a0d14;font-family:'Segoe UI','Helvetica Neue',sans-serif;color
     <div class="leg"><div class="leg-dot" style="background:#58a6ff;box-shadow:0 0 4px #1f6feb66"></div>Variation</div>
     <div class="leg"><div class="leg-dot" style="background:#3fb950;box-shadow:0 0 4px #3fb95055;border-radius:3px;transform:rotate(45deg)"></div>Category</div>
     <div class="leg"><div class="leg-dot" style="background:#8b949e"></div>Platform (click→open)</div>
+    <div class="leg" style="margin-top:5px;font-size:9px;color:#30363d">Data quality:</div>
+    <div class="leg"><div class="leg-dot" style="background:#3fb950;width:5px;height:5px"></div>Full data (image+bio)</div>
+    <div class="leg"><div class="leg-dot" style="background:#e6b450;width:5px;height:5px"></div>Partial data</div>
+    <div class="leg"><div class="leg-dot" style="background:#ff7b72;width:5px;height:5px"></div>Auth wall (blocked)</div>
     <div class="leg-edge" style="margin-top:6px">
       <div class="leg-line" style="width:22px;border-top:1.5px solid #58a6ff88"></div>d=1 direct
     </div>
@@ -388,9 +403,7 @@ body{background:#0a0d14;font-family:'Segoe UI','Helvetica Neue',sans-serif;color
     <button id="rp-close" onclick="closeCtx()">✕</button>
   </div>
   <div id="rp-body">
-    <div class="rp-empty">Click any node<br>to see context<br><br>
-      <span style="font-size:10px;color:#21262d">— GitNexus style —</span>
-    </div>
+    <div class="rp-empty">Click any node<br>to see details</div>
   </div>
   <div id="rp-actions" style="display:none">
     <button class="rp-btn primary" id="rp-open"  onclick="rpOpenURL()">↗ Open</button>
@@ -413,7 +426,7 @@ body{background:#0a0d14;font-family:'Segoe UI','Helvetica Neue',sans-serif;color
 <!-- ── MEDIA PANEL (per-site floating overlay) ── -->
 <div id="media-panel">
   <div id="mp-head">
-    <span id="mp-site-icon" style="font-size:14px">📡</span>
+    <span id="mp-site-icon" style="font-size:14px">&#128250;</span>
     <div id="mp-site-name">Site</div>
     <a id="mp-ext-link" href="#" target="_blank" rel="noopener noreferrer"
        style="font-size:10px;color:#58a6ff;margin-left:auto;text-decoration:none"
@@ -921,6 +934,34 @@ function drawNode(n) {
   ctx.stroke();
   ctx.shadowBlur=0; ctx.restore();
 
+  // Data quality dot for site nodes (lower-right corner)
+  if (type === NT.SITE) {
+    const sd2 = findSiteData(n.label);
+    if (sd2) {
+      let dotColor;
+      if (sd2.auth_wall) {
+        dotColor = '#ff7b72';   // red  = auth wall / data blocked
+      } else if ((sd2.image || sd2.avatar_url || sd2.og_image) && (sd2.bio || sd2.og_description)) {
+        dotColor = '#3fb950';   // green = full data
+      } else if (sd2.image || sd2.avatar_url || sd2.og_image || sd2.bio || sd2.og_description || sd2.fullname) {
+        dotColor = '#e6b450';   // yellow = partial data
+      } else {
+        dotColor = null;        // no dot = no data
+      }
+      if (dotColor) {
+        const dr = 3.5 / scale;
+        const dx = x + nr * 0.72, dy = y + nr * 0.72;
+        ctx.save();
+        ctx.globalAlpha = al * 0.95;
+        ctx.beginPath(); ctx.arc(dx, dy, dr + 0.8/scale, 0, Math.PI*2);
+        ctx.fillStyle = '#0a0d14'; ctx.fill();
+        ctx.beginPath(); ctx.arc(dx, dy, dr, 0, Math.PI*2);
+        ctx.fillStyle = dotColor; ctx.fill();
+        ctx.restore();
+      }
+    }
+  }
+
   // Labels (in world space, will be scaled)
   if (al < 0.4 && type===NT.SITE) return;
   ctx.save(); ctx.globalAlpha = al;
@@ -1070,14 +1111,15 @@ function showTip(n, cx, cy) {
     const desc = sd && (sd.bio || sd.og_description) ? `<div style="font-size:9px;color:#8b949e;margin-top:3px;line-height:1.3;max-width:220px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${sd.bio||sd.og_description}</div>` : '';
     const imgSrc = sd && (sd.image || sd.avatar_url || sd.og_image);
     const name = sd && (sd.fullname || sd.og_title || '');
-    const loc = sd && sd.location ? `<div style="font-size:8px;color:#58a6ff;margin-top:1px">📍 ${sd.location}</div>` : '';
+    const loc = sd && sd.location ? `<div style="font-size:8px;color:#58a6ff;margin-top:1px">&#128205; ${sd.location}</div>` : '';
+    const authWall = sd && sd.auth_wall ? `<div style="font-size:8px;color:#ff7b72;margin-top:3px">&#128274; Auth wall \u2014 no profile data</div>` : '';
     html=`<div style="display:flex;align-items:center;gap:8px">
 ${imgSrc ? `<img src="${imgSrc}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">` : ''}
 <div><div class="ti-name" style="color:${meta.color}">${name || n.label}</div>
-<div class="ti-cat">${n.cat}</div>${loc}</div></div>
+<div class="ti-cat">${n.cat}</div>${loc}${authWall}</div></div>
 <div class="ti-url">${n.url}</div>${desc}
 <div class="ti-src">via: ${(n.sources||[]).join(', ')}</div>
-<div class="ti-hint">↗ Click to open</div>`;
+<div class="ti-hint">&#8599; Click to open</div>`;
   }
   tipEl.innerHTML=html; tipEl.style.opacity='1';
   let tx=cx+14, ty=cy-8;
@@ -1205,6 +1247,34 @@ function openCtx(n) {
     const similar = (DATA.categories[n.cat]||[]).filter(s=>s.site!==n.label);
     const sd = findSiteData(n.label);
 
+    // ── Data quality banner ──────────────────────────────────────────────────
+    const hasImg   = !!(sd && (sd.image || sd.avatar_url || sd.og_image));
+    const hasBio   = !!(sd && (sd.bio || sd.og_description));
+    const isAuthWall = !!(sd && sd.auth_wall);
+    const isVideo  = !!(sd && (sd.is_video_platform || sd.video_embed));
+
+    if (isAuthWall) {
+      html += `<div class="auth-wall-banner">
+        <div class="aw-title">&#128274; Authentication wall</div>
+        <div>${sd.auth_wall_platform || n.label} requires login to expose profile data.</div>
+        <div class="aw-note">Profile image, bio, and followers are not available via public HTML. Click &#8599; Open to view the profile directly.</div>
+      </div>`;
+    } else {
+      // Data quality summary badge inside the profile section
+      let qLabel, qColor, qIcon;
+      if (hasImg && hasBio) {
+        qLabel='Full data'; qColor='#3fb950'; qIcon='&#9679;';
+      } else if (hasImg || hasBio) {
+        qLabel='Partial data'; qColor='#e6b450'; qIcon='&#9681;';
+      } else {
+        qLabel='No enrichment'; qColor='#484f58'; qIcon='&#9675;';
+      }
+      html += `<div style="display:flex;align-items:center;gap:5px;padding:6px 12px 0;font-size:9px;color:${qColor}">
+        <span>${qIcon}</span><span>${qLabel} available</span>
+        ${isVideo ? '<span style="margin-left:auto;background:#1f6feb22;border:1px solid #1f6feb44;border-radius:3px;padding:1px 5px;color:#58a6ff;font-size:8px">&#9654; Video platform</span>' : ''}
+      </div>`;
+    }
+
     // Profile picture + personal data (maigret + OG enrichment)
     const imgSrc = sd && (sd.image || sd.avatar_url || sd.og_image);
     const bio = sd && (sd.bio || sd.og_description || '');
@@ -1288,7 +1358,7 @@ function closeCtx() {
   document.getElementById('app').classList.remove('rp-open');
   document.getElementById('rp-head').style.display='none';
   document.getElementById('rp-body').innerHTML=
-    '<div class="rp-empty">Click any node<br>to see context<br><br><span style="font-size:10px;color:#21262d">— GitNexus style —</span></div>';
+    '<div class="rp-empty">Click any node<br>to see details</div>';
   document.getElementById('rp-actions').style.display='none';
   document.getElementById('breadcrumb').innerHTML='';
   closeMediaPanel();

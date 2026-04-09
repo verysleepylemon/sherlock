@@ -16,6 +16,7 @@ import argparse
 import asyncio
 import json
 import logging
+import os
 import re
 import sys
 import textwrap
@@ -253,6 +254,23 @@ VIDEO_PLATFORMS = {
     'douyin.com':      'Douyin',
 }
 
+# Platforms that require authentication — no useful profile data via plain HTTP
+# These are pre-flagged so we skip the HTTP fetch and show a data-blocked indicator
+KNOWN_AUTH_WALLS = {
+    'instagram.com':   'Instagram',
+    'twitter.com':     'Twitter/X',
+    'x.com':           'Twitter/X',
+    'facebook.com':    'Facebook',
+    'linkedin.com':    'LinkedIn',
+    'snapchat.com':    'Snapchat',
+    'pinterest.com':   'Pinterest',
+    'clubhouse.com':   'Clubhouse',
+    'tiktok.com':      'TikTok',   # returns generic page, not profile
+    'threads.net':     'Threads',
+    'weibo.com':       'Weibo',
+    'vk.com':          'VK',
+}
+
 # Platform-specific avatar URL patterns (no HTTP needed)
 _AVATAR_PATTERNS = {
     'github':      'https://github.com/{}.png?size=200',
@@ -374,7 +392,17 @@ def enrich_profiles(merged: dict, timeout_sec: int = 8) -> dict:
             'avatar_url': '', 'og_video': '',
             'is_video_platform': False, 'video_platform': '',
             'all_images': [],
+            'auth_wall': False, 'auth_wall_platform': '',
         }
+
+        # Detect auth-wall platforms — skip HTTP fetch, flag immediately
+        for aw_domain, aw_name in KNOWN_AUTH_WALLS.items():
+            if domain and aw_domain in domain:
+                result['auth_wall'] = True
+                result['auth_wall_platform'] = aw_name
+                if domain:
+                    result['favicon'] = f'https://www.google.com/s2/favicons?domain={domain}&sz=64'
+                return key, result
 
         # Detect video platforms
         for vdomain, vname in VIDEO_PLATFORMS.items():
@@ -472,7 +500,8 @@ def build_html(target: str, var_results: dict, elapsed: float) -> str:
                 item['bio'] = e['og_description']
             # Always merge these supplementary fields
             for f in ('og_image','og_title','og_description','page_title','favicon','avatar_url',
-                      'og_video','video_embed','is_video_platform','video_platform','all_images'):
+                      'og_video','video_embed','is_video_platform','video_platform','all_images',
+                      'auth_wall','auth_wall_platform'):
                 if e.get(f):
                     item.setdefault(f, e[f])
             # Collect all unique images into a list
@@ -1137,8 +1166,16 @@ def main():
 
     print(f"\n  Clue web → {out_file}")
     if not args.no_browser:
-        webbrowser.open(str(out_file))
-        print("  Opened in browser.\n")
+        try:
+            # On Windows, os.startfile is more reliable than webbrowser.open for local files
+            if sys.platform == 'win32':
+                os.startfile(str(out_file))
+            else:
+                webbrowser.open(out_file.as_uri())
+            print("  Opened in browser. ✓\n")
+        except Exception as e:
+            print(f"  Could not auto-open browser: {e}")
+            print(f"  Open manually: {out_file}\n")
 
 
 if __name__ == '__main__':
