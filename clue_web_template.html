@@ -12,11 +12,70 @@ body{background:#0a0d14;font-family:'Segoe UI','Helvetica Neue',sans-serif;color
 /* ── Layout shells ── */
 #app{position:fixed;inset:0;display:grid;
   grid-template:"topbar topbar  topbar" 52px
+                 "varbar varbar  varbar" 40px
                  "lpanel canvas rpanel" 1fr
                  "lpanel botbar rpanel" 44px
   / 210px 1fr 0px;
   transition:grid-template-columns 0.2s ease}
 #app.rp-open{grid-template-columns:210px 1fr 280px}
+
+/* ── Variant bar ── */
+#varbar{
+  grid-area:varbar;display:flex;align-items:center;gap:6px;
+  padding:0 12px;background:#0d1117;border-bottom:1px solid #21262d;
+  z-index:25;overflow:hidden}
+#var-nav-prev,#var-nav-next{
+  background:#161b22;border:1px solid #30363d;border-radius:5px;
+  color:#8b949e;font-size:14px;width:26px;height:26px;cursor:pointer;
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  transition:all 0.12s;line-height:1}
+#var-nav-prev:hover,#var-nav-next:hover{color:#58a6ff;border-color:#58a6ff66}
+#var-tabs{display:flex;gap:4px;overflow-x:auto;flex:1;scrollbar-width:none}
+#var-tabs::-webkit-scrollbar{display:none}
+.vtab{background:#161b22;border:1px solid #30363d;border-radius:5px;
+  color:#8b949e;font-size:11px;font-family:monospace;
+  padding:4px 10px;cursor:pointer;white-space:nowrap;flex-shrink:0;
+  transition:all 0.12s;display:flex;align-items:center;gap:5px}
+.vtab:hover{color:#c9d1d9;border-color:#58a6ff66;background:#1f6feb11}
+.vtab.act{color:#f0f6fc;border-color:#58a6ff;background:#1f6feb33;font-weight:700}
+.vtab .vtcnt{color:#e6b450;font-size:10px;font-weight:700}
+.vtab-all{color:#484f58}
+#var-mode-label{font-size:10px;color:#484f58;flex-shrink:0;white-space:nowrap;padding-left:6px}
+
+/* ── Media panel (floating, per-site) ── */
+#media-panel{
+  position:fixed;z-index:90;width:420px;
+  background:#0d1117;border:1px solid #30363d;border-radius:10px;
+  box-shadow:0 16px 48px #000000cc;display:none;flex-direction:column;
+  max-height:80vh;overflow:hidden}
+#media-panel.open{display:flex}
+#mp-head{display:flex;align-items:center;gap:8px;padding:10px 14px;
+  border-bottom:1px solid #21262d;flex-shrink:0}
+#mp-site-name{font-size:13px;font-weight:700;color:#f0f6fc;flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mp-close{background:none;border:none;color:#484f58;font-size:14px;
+  cursor:pointer;flex-shrink:0;padding:2px}
+#mp-close:hover{color:#c9d1d9}
+#mp-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:0}
+.mp-video-wrap{padding:10px 14px 0;flex-shrink:0}
+.mp-video-wrap iframe{width:100%;border-radius:6px;border:none;background:#000;display:block}
+.mp-photos{display:flex;flex-direction:column;gap:8px;padding:10px 14px 14px}
+.mp-photo{width:100%;display:block;border-radius:6px;object-fit:contain;
+  background:#161b22;cursor:zoom-in;max-height:400px}
+.mp-photo:hover{opacity:0.9}
+.mp-meta{padding:6px 14px 10px;border-top:1px solid #21262d;flex-shrink:0}
+.mp-meta-row{font-size:10px;color:#8b949e;padding:2px 0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mp-meta-row b{color:#c9d1d9}
+.mp-link{font-size:10px;color:#58a6ff;cursor:pointer;padding:2px 0}
+.mp-link:hover{text-decoration:underline}
+.mp-empty{padding:24px;text-align:center;color:#30363d;font-size:12px}
+
+/* ── Image lightbox ── */
+#lightbox{position:fixed;inset:0;z-index:200;background:#000000ee;
+  display:none;align-items:center;justify-content:center;cursor:zoom-out}
+#lightbox.open{display:flex}
+#lb-img{max-width:92vw;max-height:92vh;object-fit:contain;border-radius:6px}
 
 /* ── Top bar ── */
 #topbar{
@@ -213,7 +272,8 @@ body{background:#0a0d14;font-family:'Segoe UI','Helvetica Neue',sans-serif;color
   overflow:hidden;cursor:pointer;transition:all 0.15s}
 .mg-card:hover{border-color:#58a6ff66;transform:translateY(-2px);
   box-shadow:0 8px 24px #00000066}
-.mg-card img{width:100%;height:140px;object-fit:cover;background:#161b22;display:block}
+.mg-card img{width:100%;max-height:300px;object-fit:contain;background:#161b22;display:block}
+.mg-card iframe{width:100%;height:200px;border:none;background:#000;display:block}
 .mg-card-body{padding:8px 10px}
 .mg-card-name{font-size:12px;font-weight:700;color:#f0f6fc;margin-bottom:2px}
 .mg-card-cat{font-size:10px;color:#484f58}
@@ -249,6 +309,14 @@ body{background:#0a0d14;font-family:'Segoe UI','Helvetica Neue',sans-serif;color
   <button class="tbtn act" id="btn-depth" onclick="toggleDepthMode()" title="Depth impact coloring when selected">Depth</button>
 </div>
 
+<!-- ── VARIANT BAR ── -->
+<div id="varbar">
+  <button id="var-nav-prev" onclick="prevVar()" title="Previous variant">&#8249;</button>
+  <div id="var-tabs"></div>
+  <button id="var-nav-next" onclick="nextVar()" title="Next variant">&#8250;</button>
+  <span id="var-mode-label"></span>
+</div>
+
 <!-- ── LEFT PANEL ── -->
 <div id="lpanel">
   <div class="lp-sec">
@@ -273,6 +341,7 @@ body{background:#0a0d14;font-family:'Segoe UI','Helvetica Neue',sans-serif;color
   <div class="lp-sec" style="border-bottom:0;margin-top:auto;padding-bottom:12px">
     <div class="lp-hd">INTEL <span class="hint" id="intel-count"></span></div>
     <div class="intel-row"><span class="intel-icon">📷</span>Profile Images<span class="intel-n" id="i-photos">-</span></div>
+    <div class="intel-row"><span class="intel-icon">&#9654;</span>Video Profiles<span class="intel-n" id="i-videos">-</span></div>
     <div class="intel-row"><span class="intel-icon">�</span>Names Found<span class="intel-n" id="i-names">-</span></div>
     <div class="intel-row"><span class="intel-icon">📝</span>Bios Found<span class="intel-n" id="i-bios">-</span></div>
     <div class="intel-row"><span class="intel-icon">📍</span>Locations<span class="intel-n" id="i-locations">-</span></div>
@@ -341,6 +410,28 @@ body{background:#0a0d14;font-family:'Segoe UI','Helvetica Neue',sans-serif;color
 <div id="tip"></div>
 <div id="toast"></div>
 
+<!-- ── MEDIA PANEL (per-site floating overlay) ── -->
+<div id="media-panel">
+  <div id="mp-head">
+    <span id="mp-site-icon" style="font-size:14px">📡</span>
+    <div id="mp-site-name">Site</div>
+    <a id="mp-ext-link" href="#" target="_blank" rel="noopener noreferrer"
+       style="font-size:10px;color:#58a6ff;margin-left:auto;text-decoration:none"
+       title="Open profile">&#8599;</a>
+    <button id="mp-close" onclick="closeMediaPanel()">&#10005;</button>
+  </div>
+  <div id="mp-body">
+    <div id="mp-meta" class="mp-meta" style="padding:8px 14px 6px"></div>
+    <div id="mp-video-wrap" class="mp-video-wrap" style="display:none"></div>
+    <div id="mp-photos" class="mp-photos"></div>
+  </div>
+</div>
+
+<!-- ── LIGHTBOX ── -->
+<div id="lightbox" onclick="closeLightbox()">
+  <img id="lb-img" src="" alt="">
+</div>
+
 <!-- ── MEDIA GALLERY OVERLAY ── -->
 <div id="media-gallery">
   <div id="mg-header">
@@ -349,10 +440,11 @@ body{background:#0a0d14;font-family:'Segoe UI','Helvetica Neue',sans-serif;color
   </div>
   <div id="mg-filter">
     <div class="mg-tag act" data-f="all" onclick="filterGallery('all')">All</div>
-    <div class="mg-tag" data-f="photos" onclick="filterGallery('photos')">📷 Photos</div>
-    <div class="mg-tag" data-f="names" onclick="filterGallery('names')">👤 Names</div>
-    <div class="mg-tag" data-f="bios" onclick="filterGallery('bios')">📝 Bios</div>
-    <div class="mg-tag" data-f="locations" onclick="filterGallery('locations')">📍 Locations</div>
+    <div class="mg-tag" data-f="photos" onclick="filterGallery('photos')">&#128247; Photos</div>
+    <div class="mg-tag" data-f="videos" onclick="filterGallery('videos')">&#9654; Videos</div>
+    <div class="mg-tag" data-f="names" onclick="filterGallery('names')">&#128100; Names</div>
+    <div class="mg-tag" data-f="bios" onclick="filterGallery('bios')">&#128221; Bios</div>
+    <div class="mg-tag" data-f="locations" onclick="filterGallery('locations')">&#128205; Locations</div>
   </div>
   <div id="mg-grid"></div>
 </div>
@@ -365,7 +457,7 @@ body{background:#0a0d14;font-family:'Segoe UI','Helvetica Neue',sans-serif;color
 // ════════════════════════════════════════════════════════════
 const NT = { TARGET:'target', VAR:'var', CAT:'cat', SITE:'site' };
 const LP_W = 210;  // left panel width (CSS)
-const TB_H = 52;   // top bar height
+const TB_H = 92;   // top bar + varbar height (52+40)
 const BB_H = 44;   // bottom bar height
 // RP_W is managed by CSS grid, canvas-area resizes automatically
 const MIN_SCALE = 0.08, MAX_SCALE = 4;
@@ -680,14 +772,14 @@ function nodeAlpha(n) {
   }
   // Category hidden
   if (n.cat && hiddenCats.has(n.cat)) return 0;
-  // Variant filter
+  // Variant filter — hide non-matching SITE nodes entirely
   if (activeVar) {
-    if (n.type===NT.SITE && !(n.sources||[]).includes(activeVar)) return 0.05;
+    if (n.type===NT.SITE && !(n.sources||[]).includes(activeVar)) return 0;
     if (n.type===NT.CAT) {
       const hasSite = (DATA.categories[n.cat]||[]).some(s=>(s.sources||[]).includes(activeVar));
-      if (!hasSite) return 0.05;
+      if (!hasSite) return 0;
     }
-    if (n.type===NT.VAR && n.variant !== activeVar) return 0.25;
+    if (n.type===NT.VAR && n.variant !== activeVar) return 0.2;
   }
   // Depth
   if (depthMode && depths && n.id !== selected?.id) {
@@ -1174,6 +1266,14 @@ function openCtx(n) {
     // Store current URL for actions
     document.getElementById('rp-open').dataset.url = n.url;
     document.getElementById('rp-copy').dataset.url = n.url;
+
+    // Open media panel if site has images or is a video platform
+    const hasMp = sd && (sd.all_images?.length || sd.image || sd.avatar_url || sd.og_image || sd.video_embed || sd.is_video_platform);
+    if (hasMp) {
+      setTimeout(() => openMediaPanel(n, sd), 80);
+    } else {
+      closeMediaPanel();
+    }
   }
 
   body.innerHTML = html;
@@ -1191,6 +1291,7 @@ function closeCtx() {
     '<div class="rp-empty">Click any node<br>to see context<br><br><span style="font-size:10px;color:#21262d">— GitNexus style —</span></div>';
   document.getElementById('rp-actions').style.display='none';
   document.getElementById('breadcrumb').innerHTML='';
+  closeMediaPanel();
   setTimeout(resize, 210);
 }
 
@@ -1206,60 +1307,164 @@ function openGallery(filter) {
   const gallery = document.getElementById('media-gallery');
   const grid = document.getElementById('mg-grid');
   if (!gallery || !grid) return;
-  // Collect all sites with media / personal data
   const items = [];
   Object.entries(DATA.categories).forEach(([cat, sites]) => {
     const meta = DATA.cat_meta[cat] || {color:'#607d8b'};
     sites.forEach(s => {
-      const hasImg = s.image || s.avatar_url || s.og_image;
+      const allImgs = s.all_images || (s.image ? [s.image] : (s.avatar_url ? [s.avatar_url] : (s.og_image ? [s.og_image] : [])));
+      const hasImg = allImgs.length > 0;
+      const hasVideo = s.is_video_platform || s.og_video || s.video_embed;
       const hasBio = s.bio || s.og_description;
       const hasName = s.fullname || s.og_title;
       const hasLoc = !!s.location;
       if (filter === 'photos' && !hasImg) return;
+      if (filter === 'videos' && !hasVideo) return;
       if (filter === 'bios' && !hasBio) return;
       if (filter === 'names' && !hasName) return;
       if (filter === 'locations' && !hasLoc) return;
-      if (filter === 'all' && !hasImg && !hasBio && !hasName) return;
-      items.push({...s, cat, color: meta.color, hasImg, hasBio, hasName, hasLoc});
+      if (filter === 'all' && !hasImg && !hasVideo && !hasBio && !hasName) return;
+      items.push({...s, cat, color: meta.color, allImgs, hasImg, hasVideo, hasBio, hasName, hasLoc});
     });
   });
-  // Sort: items with images first, then names, then bios
-  items.sort((a,b) => (b.hasImg?2:0)+(b.hasName?1:0) - ((a.hasImg?2:0)+(a.hasName?1:0)));
-  // Render
+  items.sort((a,b) => (b.hasImg?4:0)+(b.hasVideo?3:0)+(b.hasName?1:0) - ((a.hasImg?4:0)+(a.hasVideo?3:0)+(a.hasName?1:0)));
   grid.innerHTML = items.length === 0
-    ? '<div style="grid-column:1/-1;text-align:center;color:#484f58;padding:40px">No media data found for this filter.</div>'
+    ? '<div style="grid-column:1/-1;text-align:center;color:#484f58;padding:40px">No data found for this filter.</div>'
     : items.map(it => {
-      const imgUrl = it.image || it.avatar_url || it.og_image;
+      const primaryImg = it.allImgs[0] || '';
       const name = it.fullname || it.og_title || '';
-      const bio = it.bio || it.og_description || '';
-      const loc = it.location || '';
+      const bio  = it.bio || it.og_description || '';
+      const loc  = it.location || '';
+      const vidIcon = it.is_video_platform ? `<span style="position:absolute;top:6px;right:6px;background:#00000099;border-radius:4px;padding:2px 5px;font-size:10px;color:#fff">&#9654; ${it.video_platform||'Video'}</span>` : '';
       return `
-    <div class="mg-card" onclick="window.open('${it.url}','_blank')" title="${it.url}">
-      <div class="mg-img" style="background:${it.color}11;border-bottom:1px solid ${it.color}22">
-        ${imgUrl
-          ? `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div style=\\'font-size:32px;display:flex;align-items:center;justify-content:center;height:100%;color:${it.color}\\'>${it.site[0]}</div>'">`
-          : `<div style="font-size:32px;display:flex;align-items:center;justify-content:center;height:100%;color:${it.color}">${it.site[0]}</div>`}
-      </div>
-      <div class="mg-body">
-        <div class="mg-name" style="color:${it.color}">${it.site}</div>
-        ${name ? `<div style="font-size:10px;color:#c9d1d9;font-weight:600;margin-top:2px">${name}</div>` : ''}
-        <div class="mg-cat">${it.cat}${loc ? ' · 📍'+loc : ''}</div>
-        ${bio ? `<div class="mg-desc">${bio}</div>` : ''}
-        ${it.followers ? `<div style="font-size:9px;color:#484f58;margin-top:2px">${it.followers} followers</div>` : ''}
-      </div>
-    </div>`;
+<div class="mg-card" onclick="openMediaPanel(nodeMap['$S:${it.site}'],findSiteData('${it.site}'))" title="${it.site}: ${it.url}">
+  <div style="position:relative">
+    ${it.video_embed && !primaryImg
+      ? `<iframe src="${it.video_embed}" width="100%" height="200" frameborder="0" allow="autoplay;encrypted-media" allowfullscreen></iframe>`
+      : primaryImg
+        ? `<img src="${primaryImg}" onerror="this.style.display='none'" style="width:100%;max-height:300px;object-fit:contain;background:#161b22;display:block">`
+        : `<div style="height:60px;display:flex;align-items:center;justify-content:center;font-size:32px;background:#161b2233;color:${it.color}">${it.site[0]||'?'}</div>`}
+    ${vidIcon}
+  </div>
+  <div class="mg-card-body">
+    <div class="mg-card-name" style="color:${it.color}">${it.site}</div>
+    ${name ? `<div style="font-size:11px;color:#c9d1d9;font-weight:600">${name}</div>` : ''}
+    <div class="mg-card-cat">${it.cat}${loc ? ' &middot; &#128205;'+loc : ''}${it.allImgs.length>1 ? ` &middot; &#128247;${it.allImgs.length}` : ''}</div>
+    ${bio ? `<div class="mg-card-desc">${bio}</div>` : ''}
+  </div>
+</div>`;
     }).join('');
-  // Update active filter tag
   gallery.querySelectorAll('.mg-tag').forEach(t => {
     t.classList.toggle('act', t.dataset.f === filter);
   });
+  const cnt = document.getElementById('mg-count');
+  if (cnt) cnt.textContent = items.length;
   gallery.style.display = 'flex';
 }
+
 function closeGallery() {
   const g = document.getElementById('media-gallery');
   if (g) g.style.display = 'none';
 }
 function filterGallery(filter) { openGallery(filter); }
+
+// ════════════════════════════════════════════════════════════
+//  Media Panel (per-site floating panel)
+// ════════════════════════════════════════════════════════════
+let mediaPanelNode = null;
+
+function openMediaPanel(n, sd) {
+  if (!sd) return;
+  const panel = document.getElementById('media-panel');
+  if (!panel) return;
+  mediaPanelNode = n;
+
+  // Meta row
+  const meta = document.getElementById('mp-meta');
+  const metaRows = [];
+  if (sd.fullname || sd.og_title) metaRows.push(`<b>${sd.fullname || sd.og_title}</b>`);
+  if (sd.bio || sd.og_description) {
+    const t = (sd.bio || sd.og_description).slice(0,160);
+    metaRows.push(`<span class="mp-meta-row">${t}${t.length===160?'…':''}</span>`);
+  }
+  if (sd.location) metaRows.push(`<span class="mp-meta-row">&#128205; ${sd.location}</span>`);
+  if (sd.followers) metaRows.push(`<span class="mp-meta-row">&#128101; ${sd.followers} followers</span>`);
+  meta.innerHTML = metaRows.join('') || '';
+
+  // Name + link
+  document.getElementById('mp-site-name').textContent = sd.site || n?.label || '';
+  const extLink = document.getElementById('mp-ext-link');
+  if (extLink && sd.url) { extLink.href = sd.url; extLink.style.display=''; }
+  else if (extLink) extLink.style.display='none';
+
+  // Video embed
+  const vwrap = document.getElementById('mp-video-wrap');
+  if ((sd.video_embed || sd.og_video) && (!sd.all_images || sd.all_images.length===0)) {
+    const src = sd.video_embed || sd.og_video;
+    const sep = src.includes('?') ? '&' : '?';
+    vwrap.innerHTML = `<iframe src="${src}${sep}autoplay=1" width="100%" height="220" frameborder="0"
+      allow="autoplay;encrypted-media" allowfullscreen style="border-radius:6px"></iframe>`;
+    vwrap.style.display = 'block';
+  } else if (sd.video_embed || sd.og_video) {
+    // Show video below photos
+    const src = sd.video_embed || sd.og_video;
+    const sep = src.includes('?') ? '&' : '?';
+    vwrap.innerHTML = `<div style="font-size:9px;color:#484f58;padding:0 14px 4px">▶ Video</div>
+      <iframe src="${src}${sep}autoplay=1" width="100%" height="200" frameborder="0"
+        allow="autoplay;encrypted-media" allowfullscreen style="border-radius:6px;display:block;margin:0 14px;width:calc(100%-28px)"></iframe>`;
+    vwrap.style.display = 'block';
+  } else {
+    vwrap.innerHTML = '';
+    vwrap.style.display = 'none';
+  }
+
+  // Photos — show ALL images
+  const photos = document.getElementById('mp-photos');
+  const allImgs = sd.all_images && sd.all_images.length
+    ? sd.all_images
+    : [sd.image, sd.avatar_url, sd.og_image].filter(Boolean);
+
+  if (allImgs.length) {
+    photos.innerHTML = allImgs.map((src,i) =>
+      `<img class="mp-photo" src="${src}" alt="photo ${i+1}"
+        onclick="openLightbox('${src.replace(/'/g,'%27')}')"
+        onerror="this.style.display='none'"
+        loading="${i===0?'eager':'lazy'}">`
+    ).join('');
+  } else {
+    photos.innerHTML = '<div class="mp-empty">No photos available</div>';
+  }
+
+  // Position panel: right side of canvas if enough space, else left
+  const appEl = document.getElementById('app');
+  const appRect = appEl ? appEl.getBoundingClientRect() : {right: window.innerWidth, top:52};
+  const panelW = 420;
+  const rightEdge = window.innerWidth - 20;
+  const leftPos = Math.min(rightEdge - panelW, window.innerWidth * 0.55);
+  panel.style.right = '20px';
+  panel.style.left = 'auto';
+  panel.style.top = '100px';
+  panel.style.width = panelW + 'px';
+  panel.classList.add('open');
+}
+
+function closeMediaPanel() {
+  const panel = document.getElementById('media-panel');
+  if (panel) panel.classList.remove('open');
+  mediaPanelNode = null;
+}
+
+function openLightbox(src) {
+  const lb = document.getElementById('lightbox');
+  const img = document.getElementById('lb-img');
+  if (!lb || !img) return;
+  img.src = src;
+  lb.classList.add('open');
+}
+
+function closeLightbox() {
+  const lb = document.getElementById('lightbox');
+  if (lb) lb.classList.remove('open');
+}
 
 function exportJSON() {
   const payload = {
@@ -1338,16 +1543,27 @@ function selectNode(id) {
 //  Sidebar: variants + categories
 // ════════════════════════════════════════════════════════════
 function buildSidebar() {
-  // Variants
-  const vl = document.getElementById('var-list');
-  vl.innerHTML = DATA.variations.map(v => {
+  // ── Variant tabs bar ──
+  const vtabs = document.getElementById('var-tabs');
+  const vars = DATA.variations || [];
+  const tabsHtml = [
+    `<div class="vtab vtab-all${activeVar===null?' act':''}" data-v="" onclick="setActiveVar(null)">All <span class="vtcnt">${DATA.total}</span></div>`
+  ].concat(vars.map(v => {
     const cnt = DATA.var_counts[v]||0;
-    return `<div class="vpill" data-v="${v}" onclick="toggleVar('${v}')">
+    return `<div class="vtab${activeVar===v?' act':''}" data-v="${v}" onclick="setActiveVar('${v}')"><span style="max-width:120px;overflow:hidden;text-overflow:ellipsis">${v}</span><span class="vtcnt">${cnt}</span></div>`;
+  })).join('');
+  vtabs.innerHTML = tabsHtml;
+
+  // ── Sidebar variant pills (still useful as secondary list) ──
+  const vl = document.getElementById('var-list');
+  vl.innerHTML = vars.map(v => {
+    const cnt = DATA.var_counts[v]||0;
+    return `<div class="vpill${activeVar===v?' act':''}" data-v="${v}" onclick="setActiveVar('${v}')">
 <span style="flex:1;overflow:hidden;text-overflow:ellipsis">${v}</span>
 <span class="vc">${cnt}</span></div>`;
   }).join('');
 
-  // Categories
+  // ── Categories ──
   const cl = document.getElementById('cat-list');
   const cats = Object.keys(DATA.categories)
     .filter(k=>DATA.categories[k].length)
@@ -1356,18 +1572,55 @@ function buildSidebar() {
     const meta=DATA.cat_meta[cat]||{color:'#607d8b'};
     const cnt=DATA.categories[cat].length;
     return `<div class="cat-row" data-cat="${cat}" onclick="toggleCat('${cat}')">
-<div class="cat-ck">✓</div>
+<div class="cat-ck">&#10003;</div>
 <div class="cat-dot" style="background:${meta.color}"></div>
 <span title="${cat}">${cat}</span>
 <span class="cat-n">${cnt}</span></div>`;
   }).join('');
+
+  updateVarModeLabel();
 }
 
-function toggleVar(v) {
-  activeVar = activeVar===v ? null : v;
+function setActiveVar(v) {
+  activeVar = (v === activeVar || v === null) ? (v === null ? null : activeVar) : v;
+  if (v === null) activeVar = null;
+  else activeVar = v;
+
+  // Sync tab highlight
+  document.querySelectorAll('.vtab').forEach(el =>
+    el.classList.toggle('act', el.dataset.v === (activeVar||'')));
+  // Sync sidebar pills
   document.querySelectorAll('.vpill').forEach(el =>
-    el.classList.toggle('act', el.dataset.v===activeVar));
+    el.classList.toggle('act', el.dataset.v === activeVar));
+
+  updateVarModeLabel();
+  closeMediaPanel();
 }
+
+function updateVarModeLabel() {
+  const lbl = document.getElementById('var-mode-label');
+  if (!lbl) return;
+  lbl.textContent = activeVar ? `Showing: ${activeVar}` : '';
+}
+
+function prevVar() {
+  const vars = DATA.variations || [];
+  if (!vars.length) return;
+  const idx = activeVar ? vars.indexOf(activeVar) : -1;
+  const prev = idx > 0 ? vars[idx-1] : (idx===0 ? null : vars[vars.length-1]);
+  setActiveVar(prev);
+}
+
+function nextVar() {
+  const vars = DATA.variations || [];
+  if (!vars.length) return;
+  const idx = activeVar ? vars.indexOf(activeVar) : -1;
+  const nxt = idx < vars.length-1 ? vars[idx+1] : null;
+  setActiveVar(nxt);
+}
+
+// Legacy alias kept for any old references
+function toggleVar(v) { setActiveVar(activeVar===v ? null : v); }
 
 function toggleCat(cat) {
   if (hiddenCats.has(cat)) hiddenCats.delete(cat);
@@ -1411,11 +1664,13 @@ function fillStats() {
   // Intel stats
   const ms = DATA.media_stats || {};
   const ep = document.getElementById('i-photos');
+  const ev = document.getElementById('i-videos');
   const en = document.getElementById('i-names');
   const eb = document.getElementById('i-bios');
   const el = document.getElementById('i-locations');
   const et = document.getElementById('i-titles');
   if (ep) ep.textContent = ms.photos || 0;
+  if (ev) ev.textContent = ms.videos || 0;
   if (en) en.textContent = ms.names || 0;
   if (eb) eb.textContent = ms.bios || 0;
   if (el) el.textContent = ms.locations || 0;
@@ -1560,6 +1815,12 @@ buildGraph();
 resize();
 drawBG();
 resetView(false);
+
+// Auto-select first variant so the web starts clean with one username
+if (DATA.variations && DATA.variations.length > 0) {
+  activeVar = DATA.variations[0];
+}
+
 buildSidebar();
 fillStats();
 

@@ -218,7 +218,40 @@ _META_TW_IMG = re.compile(
     r'<meta\s+[^>]*?(?:name|property)\s*=\s*["\']twitter:image["\'][^>]*?content\s*=\s*["\']([^"\']*)["\']',
     re.I | re.S
 )
+_META_OG_VIDEO = re.compile(
+    r'<meta\s+[^>]*?property\s*=\s*["\']og:video(?::url)?["\'][^>]*?content\s*=\s*["\']([^"\']*)["\']',
+    re.I | re.S
+)
+_META_TW_PLAYER = re.compile(
+    r'<meta\s+[^>]*?(?:name|property)\s*=\s*["\']twitter:player["\'][^>]*?content\s*=\s*["\']([^"\']*)["\']',
+    re.I | re.S
+)
+# Collect all image tags from page for multi-photo support
+_IMG_TAGS = re.compile(
+    r'<img[^>]+src=["\']([^"\']{10,}["\'])',
+    re.I | re.S
+)
 _TITLE_RE = re.compile(r'<title[^>]*>([^<]{1,200})</title>', re.I | re.S)
+
+# Video platform detection
+VIDEO_PLATFORMS = {
+    'youtube.com':     'YouTube',
+    'youtu.be':        'YouTube',
+    'tiktok.com':      'TikTok',
+    'twitch.tv':       'Twitch',
+    'vimeo.com':       'Vimeo',
+    'dailymotion.com': 'Dailymotion',
+    'bilibili.com':    'Bilibili',
+    'nicovideo.jp':    'NicoVideo',
+    'kick.com':        'Kick',
+    'rumble.com':      'Rumble',
+    'trovo.live':      'Trovo',
+    'odysee.com':      'Odysee',
+    'bitchute.com':    'BitChute',
+    'streamable.com':  'Streamable',
+    'bigo.tv':         'BIGO Live',
+    'douyin.com':      'Douyin',
+}
 
 # Platform-specific avatar URL patterns (no HTTP needed)
 _AVATAR_PATTERNS = {
@@ -233,20 +266,21 @@ _AVATAR_PATTERNS = {
 
 
 def _extract_og(html_bytes: bytes) -> dict:
-    """Extract Open Graph metadata from raw HTML bytes."""
+    """Extract Open Graph metadata and video info from raw HTML bytes."""
     text = html_bytes.decode('utf-8', errors='ignore')
-    data = {'og_image': '', 'og_title': '', 'og_description': '', 'page_title': ''}
+    data = {'og_image': '', 'og_title': '', 'og_description': '', 'page_title': '',
+            'og_video': '', 'all_images': []}
 
     for m in _META_RE_PROP_CONTENT.finditer(text):
         prop, val = m.group(1).lower(), m.group(2).strip()
         key = f'og_{prop}'
-        if key in data and not data[key]:
+        if key in data and not data[key] and key != 'all_images':
             data[key] = val
 
     for m in _META_RE_CONTENT_PROP.finditer(text):
         val, prop = m.group(1).strip(), m.group(2).lower()
         key = f'og_{prop}'
-        if key in data and not data[key]:
+        if key in data and not data[key] and key != 'all_images':
             data[key] = val
 
     if not data['og_description']:
@@ -259,11 +293,67 @@ def _extract_og(html_bytes: bytes) -> dict:
         if m:
             data['og_image'] = m.group(1).strip()
 
+    # Video extraction
+    if not data['og_video']:
+        m = _META_OG_VIDEO.search(text)
+        if m:
+            data['og_video'] = m.group(1).strip()
+    if not data['og_video']:
+        m = _META_TW_PLAYER.search(text)
+        if m:
+            data['og_video'] = m.group(1).strip()
+
     m = _TITLE_RE.search(text)
     if m:
         data['page_title'] = m.group(1).strip()
 
     return data
+
+
+def _build_video_embed(profile_url: str, og_video: str, username: str) -> str:
+    """Build an embeddable iframe URL from a profile URL or og:video tag."""
+    # If explicit og:video URL, try to make it embeddable
+    if og_video:
+        if 'youtube.com/embed' in og_video or 'player.vimeo.com' in og_video:
+            return og_video
+        # youtube watch?v= → embed
+        m = re.search(r'youtube\.com/watch\?v=([A-Za-z0-9_-]{11})', og_video)
+        if m:
+            return f'https://www.youtube.com/embed/{m.group(1)}?autoplay=1'
+        m = re.search(r'youtu\.be/([A-Za-z0-9_-]{11})', og_video)
+        if m:
+            return f'https://www.youtube.com/embed/{m.group(1)}?autoplay=1'
+        m = re.search(r'vimeo\.com/(\d+)', og_video)
+        if m:
+            return f'https://player.vimeo.com/video/{m.group(1)}?autoplay=1'
+
+    # Build from profile URL
+    try:
+        parsed = urllib.parse.urlparse(profile_url)
+        host = parsed.hostname or ''
+    except Exception:
+        return ''
+
+    if 'youtube.com' in host or 'youtu.be' in host:
+        # Channel/user embed
+        m = re.search(r'youtube\.com/(?:c/|channel/|user/|@)([^/?#]+)', profile_url)
+        if m:
+            return f'https://www.youtube.com/embed?listType=user_uploads&list={m.group(1)}'
+        return ''
+
+    if 'twitch.tv' in host:
+        m = re.search(r'twitch\.tv/([^/?#]+)', profile_url)
+        if m:
+            return f'https://player.twitch.tv/?channel={m.group(1)}&parent=localhost'
+        return ''
+
+    if 'vimeo.com' in host:
+        m = re.search(r'vimeo\.com/(\d+)', profile_url)
+        if m:
+            return f'https://player.vimeo.com/video/{m.group(1)}?autoplay=1'
+        return ''
+
+    return ''
 
 
 def enrich_profiles(merged: dict, timeout_sec: int = 8) -> dict:
@@ -281,8 +371,17 @@ def enrich_profiles(merged: dict, timeout_sec: int = 8) -> dict:
         result = {
             'og_image': '', 'og_title': '', 'og_description': '',
             'page_title': '', 'favicon': '',
-            'avatar_url': '',
+            'avatar_url': '', 'og_video': '',
+            'is_video_platform': False, 'video_platform': '',
+            'all_images': [],
         }
+
+        # Detect video platforms
+        for vdomain, vname in VIDEO_PLATFORMS.items():
+            if domain and vdomain in domain:
+                result['is_video_platform'] = True
+                result['video_platform'] = vname
+                break
 
         # Direct avatar patterns
         site_lower = item['site'].lower()
@@ -309,7 +408,9 @@ def enrich_profiles(merged: dict, timeout_sec: int = 8) -> dict:
                 raw = resp.read(65536)  # first 64KB
                 og = _extract_og(raw)
                 for k, v in og.items():
-                    if v and not result.get(k):
+                    if k == 'all_images':
+                        result['all_images'] = v
+                    elif v and not result.get(k):
                         result[k] = v
         except Exception:
             pass
@@ -317,6 +418,9 @@ def enrich_profiles(merged: dict, timeout_sec: int = 8) -> dict:
         # Fallback avatar: use og_image if no specific avatar
         if not result['avatar_url'] and result['og_image']:
             result['avatar_url'] = result['og_image']
+
+        # Build embeddable video URL
+        result['video_embed'] = _build_video_embed(url, result.get('og_video',''), username)
 
         return key, result
 
@@ -367,9 +471,23 @@ def build_html(target: str, var_results: dict, elapsed: float) -> str:
             if not item.get('bio') and e.get('og_description'):
                 item['bio'] = e['og_description']
             # Always merge these supplementary fields
-            for f in ('og_image','og_title','og_description','page_title','favicon','avatar_url'):
+            for f in ('og_image','og_title','og_description','page_title','favicon','avatar_url',
+                      'og_video','video_embed','is_video_platform','video_platform','all_images'):
                 if e.get(f):
                     item.setdefault(f, e[f])
+            # Collect all unique images into a list
+            all_imgs = []
+            seen_imgs: set = set()
+            for img_f in ('image','avatar_url','og_image'):
+                v = item.get(img_f, '')
+                if v and v not in seen_imgs:
+                    all_imgs.append(v)
+                    seen_imgs.add(v)
+            for extra in e.get('all_images', []):
+                if extra and extra not in seen_imgs and extra.startswith('http'):
+                    all_imgs.append(extra)
+                    seen_imgs.add(extra)
+            item['all_images'] = all_imgs
 
     # Group by category
     cat_map: dict = defaultdict(list)
@@ -386,6 +504,8 @@ def build_html(target: str, var_results: dict, elapsed: float) -> str:
                       if v.get('fullname') or v.get('og_title') or v.get('page_title')),
         'locations': sum(1 for v in merged.values() if v.get('location')),
         'names': sum(1 for v in merged.values() if v.get('fullname')),
+        'videos': sum(1 for v in merged.values()
+                      if v.get('is_video_platform') or v.get('og_video') or v.get('video_embed')),
     }
 
     # Build supposed personal data summary
