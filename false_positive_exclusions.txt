@@ -4,7 +4,7 @@ Apple Discussions
 Archive.org
 Bandcamp
 Codolio
-Cults3D
+DeviantArt
 Discord.bio
 GeeksforGeeks
 Giphy
@@ -23,12 +23,14 @@ Scribd
 Shelf
 SlideShare
 Smule
-SoylentNews
 Splice
 Spotify
+Trovo
 TryHackMe
 Weblate
+Wordnik
 YandexMusic
+dailykos
 interpals
 mercadolivre
 opennet
