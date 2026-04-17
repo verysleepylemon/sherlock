@@ -2,14 +2,13 @@
 APClips
 Apple Discussions
 Archive.org
-Audiojungle
 Bandcamp
-Blogger
 Codolio
+Cults3D
+DeviantArt
 Discord.bio
 GeeksforGeeks
 Giphy
-GitBook
 Hashnode
 Hubski
 LessWrong
@@ -22,10 +21,12 @@ Reddit
 RocketTube
 Scribd
 Shelf
+Slack
 SlideShare
 Smule
 Splice
 Spotify
+Trovo
 TryHackMe
 Velomania
 Weblate
@@ -36,3 +37,4 @@ mercadolivre
 opennet
 phpRU
 svidbook
+xHamster
