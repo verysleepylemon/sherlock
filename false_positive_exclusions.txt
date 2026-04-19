@@ -8,11 +8,11 @@ DeviantArt
 Discord.bio
 GeeksforGeeks
 Giphy
-HackerRank
 Hashnode
 Hubski
 LessWrong
 LushStories
+Minecraft
 Patched
 PocketStars
 Pornhub
@@ -24,7 +24,6 @@ Scribd
 Shelf
 SlideShare
 Smule
-SpeakerDeck
 Splice
 Spotify
 Trovo
@@ -38,3 +37,4 @@ mercadolivre
 opennet
 phpRU
 svidbook
+xHamster
