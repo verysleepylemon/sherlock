@@ -12,9 +12,10 @@ GeeksforGeeks
 Giphy
 Hashnode
 Hubski
+LessWrong
+LushStories
 Motherless
 Patched
-Pornhub
 Rarible
 Realmeye
 Reddit
@@ -29,10 +30,12 @@ TryHackMe
 Velomania
 Weblate
 YandexMusic
+authorSTREAM
 dailykos
 igromania
 interpals
 mercadolivre
+nnRU
 opennet
 phpRU
 svidbook
