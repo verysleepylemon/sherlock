@@ -5,6 +5,8 @@ Archive.org
 ArtStation
 Bandcamp
 Codolio
+Cracked Forum
+DeviantArt
 Discord.bio
 Envato Forum
 GeeksforGeeks
@@ -23,6 +25,7 @@ SlideShare
 Smule
 Splice
 Spotify
+Trovo
 TryHackMe
 Velomania
 Weblate
