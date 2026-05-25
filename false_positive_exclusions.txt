@@ -1,16 +1,16 @@
 7Cups
+APClips
 Airliners
 Apple Discussions
 Archive.org
 ArtStation
 Bandcamp
 Codolio
-DeviantArt
 Discord.bio
 Envato Forum
-Freelancer
 GeeksforGeeks
 Giphy
+GitHub
 Hashnode
 Hubski
 LessWrong
@@ -27,7 +27,6 @@ SlideShare
 Smule
 Splice
 Spotify
-Trovo
 TryHackMe
 Velomania
 Weblate
