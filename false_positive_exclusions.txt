@@ -5,9 +5,9 @@ Apple Discussions
 Archive.org
 ArtStation
 Bandcamp
-Blogger
 Codolio
 Discord.bio
+Dribbble
 Envato Forum
 GeeksforGeeks
 Giphy
@@ -15,6 +15,7 @@ Hashnode
 Hubski
 LessWrong
 LushStories
+Minecraft
 Patched
 Pornhub
 Rarible
@@ -32,6 +33,7 @@ TryHackMe
 Velomania
 Weblate
 YandexMusic
+authorSTREAM
 dailykos
 igromania
 interpals
@@ -39,4 +41,3 @@ mercadolivre
 opennet
 phpRU
 svidbook
-xHamster
