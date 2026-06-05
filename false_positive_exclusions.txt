@@ -6,6 +6,7 @@ Apple Discussions
 Archive.org
 ArtStation
 Bandcamp
+CGTrader
 Codolio
 DeviantArt
 Discord.bio
@@ -15,23 +16,23 @@ Giphy
 Hashnode
 Hubski
 LushStories
-Minecraft
 Patched
 Pornhub
 Rarible
 Realmeye
 Reddit
 Replit.com
+ReverbNation
 RocketTube
 Scribd
 Shelf
 SlideShare
 Splice
 Spotify
-Star Citizen
 Trovo
 TryHackMe
 Velomania
+Venmo
 Weblate
 YandexMusic
 authorSTREAM
@@ -42,3 +43,4 @@ mercadolivre
 opennet
 phpRU
 svidbook
+xHamster
