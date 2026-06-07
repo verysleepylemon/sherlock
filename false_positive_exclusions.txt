@@ -7,8 +7,6 @@ Archive.org
 ArtStation
 Bandcamp
 Codolio
-Cults3D
-DeviantArt
 Discord.bio
 Envato Forum
 GeeksforGeeks
@@ -30,7 +28,6 @@ Shelf
 SlideShare
 Splice
 Spotify
-Trovo
 TryHackMe
 Velomania
 Weblate
@@ -41,5 +38,6 @@ igromania
 interpals
 mercadolivre
 opennet
+phpRU
 svidbook
 xHamster
