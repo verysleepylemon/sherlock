@@ -6,9 +6,10 @@ Apple Discussions
 Archive.org
 ArtStation
 Bandcamp
-CGTrader
+BreachSta.rs Forum
 Codolio
-Crevado
+Cults3D
+DeviantArt
 Discord.bio
 Envato Forum
 GeeksforGeeks
@@ -20,6 +21,8 @@ LessWrong
 LushStories
 Minecraft
 Odysee
+OurDJTalk
+PCGamer
 Patched
 Pornhub
 Rarible
@@ -29,13 +32,15 @@ Replit.com
 RocketTube
 Scribd
 Shelf
+Slack
 SlideShare
 Splice
 Spotify
+Star Citizen
+Trovo
 TryHackMe
 Velomania
 Weblate
-WordPress
 YandexMusic
 authorSTREAM
 dailykos
