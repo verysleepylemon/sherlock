@@ -16,9 +16,8 @@ Giphy
 Hashnode
 Houzz
 Hubski
-Itch.io
-Jupyter Community Forum
 LessWrong
+LiveJournal
 LushStories
 Odysee
 OurDJTalk
@@ -43,11 +42,9 @@ Weblate
 YandexMusic
 authorSTREAM
 dailykos
-eintracht
 igromania
 interpals
 mercadolivre
 opennet
 phpRU
 svidbook
-xHamster
