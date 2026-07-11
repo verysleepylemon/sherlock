@@ -21,7 +21,6 @@ LushStories
 Minecraft
 Odysee
 PCGamer
-Patched
 Pornhub
 Rarible
 Realmeye
@@ -46,3 +45,4 @@ mercadolivre
 opennet
 phpRU
 svidbook
+xHamster
