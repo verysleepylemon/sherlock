@@ -1,13 +1,14 @@
 7Cups
-APClips
 Airliners
 Apple Developer
 Apple Discussions
 Archive.org
 ArtStation
 Bandcamp
+BoardGameGeek
 BreachSta.rs Forum
 Codolio
+DEV Community
 DeviantArt
 Discord.bio
 Envato Forum
@@ -19,7 +20,6 @@ Hubski
 LessWrong
 LushStories
 Odysee
-OurDJTalk
 PCGamer
 Patched
 Pornhub
@@ -46,4 +46,3 @@ mercadolivre
 opennet
 phpRU
 svidbook
-xHamster
