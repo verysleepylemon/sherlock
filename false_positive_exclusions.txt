@@ -1,11 +1,11 @@
 7Cups
+APClips
 Airliners
 Apple Developer
 Apple Discussions
 Archive.org
 ArtStation
 Bandcamp
-BoardGameGeek
 BreachSta.rs Forum
 Codolio
 DEV Community
@@ -17,11 +17,11 @@ Giphy
 Hashnode
 Houzz
 Hubski
+Itch.io
 LessWrong
 LushStories
 Odysee
 PCGamer
-Patched
 Pornhub
 Rarible
 Realmeye
