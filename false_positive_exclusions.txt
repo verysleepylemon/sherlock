@@ -6,6 +6,7 @@ Archive.org
 ArtStation
 Bandcamp
 BreachSta.rs Forum
+Carbonmade
 Codolio
 DeviantArt
 Discord.bio
@@ -13,7 +14,6 @@ Envato Forum
 GeeksforGeeks
 Giphy
 Hashnode
-Houzz
 Hubski
 LessWrong
 LushStories
