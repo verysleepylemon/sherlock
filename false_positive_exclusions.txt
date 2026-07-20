@@ -1,11 +1,13 @@
 7Cups
-APClips
 Airliners
 Apple Developer
 Apple Discussions
+Archive.org
 ArtStation
 Bandcamp
 BreachSta.rs Forum
+CGTrader
+Carbonmade
 Codolio
 DeviantArt
 Discord.bio
@@ -15,9 +17,11 @@ Giphy
 Hashnode
 Hubski
 LessWrong
+LushStories
 Odysee
 PCGamer
 Patched
+Pornhub
 Rarible
 Realmeye
 Reddit
@@ -26,6 +30,7 @@ RocketTube
 Scribd
 Shelf
 SlideShare
+SoylentNews
 Splice
 Spotify
 Trovo
