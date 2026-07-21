@@ -5,9 +5,6 @@ Apple Discussions
 Archive.org
 ArtStation
 Bandcamp
-BreachSta.rs Forum
-CGTrader
-Carbonmade
 Codolio
 DeviantArt
 Discord.bio
@@ -18,10 +15,10 @@ Hashnode
 Hubski
 LessWrong
 LushStories
+Minecraft
 Odysee
 PCGamer
 Patched
-Pornhub
 Rarible
 Realmeye
 Reddit
@@ -30,9 +27,9 @@ RocketTube
 Scribd
 Shelf
 SlideShare
-SoylentNews
 Splice
 Spotify
+Trakt
 Trovo
 TryHackMe
 Velomania
