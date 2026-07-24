@@ -5,19 +5,16 @@ Apple Discussions
 Archive.org
 ArtStation
 Bandcamp
-BoardGameGeek
 Codolio
 DeviantArt
 Discord.bio
 Envato Forum
 GeeksforGeeks
 Giphy
-Gravatar
 Hashnode
 Hubski
 LessWrong
 LushStories
-Minecraft
 Odysee
 PCGamer
 Patched
@@ -28,13 +25,13 @@ Replit.com
 RocketTube
 Scribd
 Shelf
+Slack
 SlideShare
 Splice
 Spotify
 Trakt
 Trovo
 TryHackMe
-Velomania
 Weblate
 YandexMusic
 authorSTREAM
