@@ -14,10 +14,12 @@ Giphy
 Hashnode
 Hubski
 LessWrong
-LushStories
+Mamot
+Minecraft
 Odysee
 PCGamer
 Patched
+Pornhub
 Rarible
 Realmeye
 Reddit
@@ -25,13 +27,12 @@ Replit.com
 RocketTube
 Scribd
 Shelf
-Slack
 SlideShare
 Splice
 Spotify
-Trakt
 Trovo
 TryHackMe
+Velomania
 Weblate
 YandexMusic
 authorSTREAM
@@ -42,3 +43,4 @@ mercadolivre
 opennet
 phpRU
 svidbook
+xHamster
