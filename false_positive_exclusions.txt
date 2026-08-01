@@ -6,6 +6,7 @@ Apple Discussions
 Archive.org
 ArtStation
 Bandcamp
+BoardGameGeek
 Chatujme.cz
 Codolio
 DeviantArt
@@ -15,6 +16,7 @@ F3.cool
 GeeksforGeeks
 Giphy
 Hashnode
+Houzz
 Hubski
 Instapaper
 LessWrong
@@ -33,6 +35,7 @@ Shelf
 SlideShare
 Splice
 Spotify
+Trakt
 Trovo
 TryHackMe
 Velomania
@@ -46,3 +49,4 @@ mercadolivre
 opennet
 phpRU
 svidbook
+xHamster
