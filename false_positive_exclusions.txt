@@ -1,9 +1,7 @@
 7Cups
-APClips
 Airliners
 Apple Developer
 Apple Discussions
-Archive.org
 ArtStation
 Bandcamp
 Blogger
@@ -22,10 +20,8 @@ Instapaper
 LushStories
 Minecraft
 Odysee
-OurDJTalk
 PCGamer
 Patched
-Pornhub
 Rarible
 Realmeye
 Reddit
@@ -50,4 +46,3 @@ mercadolivre
 opennet
 phpRU
 svidbook
-xHamster
