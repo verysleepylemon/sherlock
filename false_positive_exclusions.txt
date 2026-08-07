@@ -2,6 +2,7 @@
 Airliners
 Apple Developer
 Apple Discussions
+Archive.org
 ArtStation
 Bandcamp
 Blogger
@@ -9,6 +10,7 @@ Chatujme.cz
 Codolio
 DeviantArt
 Discord.bio
+Eintracht Frankfurt Forum
 Envato Forum
 F3.cool
 GeeksforGeeks
@@ -18,7 +20,6 @@ Houzz
 Hubski
 Instapaper
 LushStories
-Minecraft
 Odysee
 PCGamer
 Patched
@@ -33,7 +34,6 @@ Shelf
 SlideShare
 Splice
 Spotify
-Trakt
 Trovo
 TryHackMe
 Weblate
