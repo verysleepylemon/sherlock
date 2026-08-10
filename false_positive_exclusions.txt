@@ -19,8 +19,8 @@ Houzz
 Hubski
 Instapaper
 LushStories
-Minecraft
 Odysee
+OurDJTalk
 PCGamer
 Patched
 Rarible
@@ -29,9 +29,9 @@ Reddit
 Replit.com
 ReverbNation
 RocketTube
-RuneScape
 Scribd
 Shelf
+Slack
 SlideShare
 Splice
 Spotify
