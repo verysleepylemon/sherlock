@@ -8,6 +8,7 @@ Bandcamp
 Blogger
 Chatujme.cz
 Codolio
+Cracked Forum
 DeviantArt
 Discord.bio
 Envato Forum
@@ -19,6 +20,7 @@ Houzz
 Hubski
 Instapaper
 LushStories
+Minecraft
 Odysee
 OurDJTalk
 PCGamer
@@ -31,17 +33,18 @@ ReverbNation
 RocketTube
 Scribd
 Shelf
-Slack
 SlideShare
 Splice
 Spotify
+Star Citizen
+Trakt
 Trovo
 TryHackMe
-Velomania
 Weblate
 YandexMusic
 authorSTREAM
 dailykos
+hunting
 igromania
 interpals
 mercadolivre
