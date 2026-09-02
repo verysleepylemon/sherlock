@@ -5,6 +5,7 @@ Apple Discussions
 Archive.org
 ArtStation
 Bandcamp
+Blogger
 Championat
 Chatujme.cz
 ChaturBate
@@ -19,7 +20,10 @@ Hashnode
 Houzz
 Hubski
 Instapaper
+Itch.io
+LushStories
 Minecraft
+ObservableHQ
 Odysee
 PCGamer
 Pornhub
