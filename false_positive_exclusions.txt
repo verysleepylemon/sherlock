@@ -5,9 +5,12 @@ Apple Discussions
 Archive.org
 ArtStation
 Bandcamp
+Blogger
+CGTrader
 Championat
 Chatujme.cz
 Codolio
+Cracked Forum
 DeviantArt
 Discord.bio
 Envato Forum
@@ -17,6 +20,7 @@ Hashnode
 Houzz
 Hubski
 Instapaper
+Lobsters
 LushStories
 ObservableHQ
 Odysee
@@ -25,12 +29,12 @@ Rarible
 Realmeye
 Reddit
 ReverbNation
-RocketTube
 Scribd
 Shelf
 SlideShare
 Splice
 Spotify
+Trakt
 Trovo
 TryHackMe
 Velomania
