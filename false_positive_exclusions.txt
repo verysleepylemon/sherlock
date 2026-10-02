@@ -5,9 +5,10 @@ Apple Discussions
 Archive.org
 ArtStation
 Bandcamp
+Blogger
+CGTrader
 Championat
 Chatujme.cz
-ChaturBate
 Codolio
 DeviantArt
 Discord.bio
@@ -25,7 +26,6 @@ Minecraft
 ObservableHQ
 Odysee
 PCGamer
-Pornhub
 Rarible
 Realmeye
 Reddit
@@ -33,11 +33,10 @@ ReverbNation
 RocketTube
 Scribd
 Shelf
-Slashdot
 SlideShare
-SourceForge
 Splice
 Spotify
+Trakt
 Trovo
 TryHackMe
 Velomania
