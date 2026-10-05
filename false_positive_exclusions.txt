@@ -6,6 +6,7 @@ Archive.org
 ArtStation
 Bandcamp
 Blogger
+CGTrader
 Championat
 Chatujme.cz
 ChaturBate
@@ -23,7 +24,6 @@ Houzz
 Hubski
 Instapaper
 Linktree
-LushStories
 ObservableHQ
 Odysee
 PCGamer
