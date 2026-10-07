@@ -19,6 +19,7 @@ Envato Forum
 GaiaOnline
 GeeksforGeeks
 Giphy
+Gumroad
 HackerNews
 Hashnode
 Houzz
@@ -41,6 +42,7 @@ Shelf
 SlideShare
 Splice
 Spotify
+Trakt
 Trovo
 TryHackMe
 Velomania
@@ -57,3 +59,4 @@ opennet
 phpRU
 social.tchncs.de
 svidbook
+xHamster
