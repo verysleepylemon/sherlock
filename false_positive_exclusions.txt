@@ -22,6 +22,7 @@ Houzz
 Hubski
 Instapaper
 Linktree
+LushStories
 ObservableHQ
 Odysee
 PCGamer
@@ -35,7 +36,7 @@ Shelf
 SlideShare
 Splice
 Spotify
-TikTok
+Trakt
 Trovo
 TryHackMe
 Velomania
