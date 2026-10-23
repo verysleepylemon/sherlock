@@ -1,14 +1,17 @@
 7Cups
+APClips
 Airliners
 Apple Developer
 Apple Discussions
 Archive.org
 ArtStation
 Bandcamp
+Blogger
 CGTrader
 Carbonmade
 Championat
 Chatujme.cz
+ChaturBate
 Codolio
 DeviantArt
 Discord.bio
@@ -26,6 +29,7 @@ LushStories
 ObservableHQ
 Odysee
 PCGamer
+Pornhub
 Rarible
 Realmeye
 Reddit
@@ -38,7 +42,6 @@ Splice
 Spotify
 TryHackMe
 Velomania
-Venmo
 Weblate
 YandexMusic
 authorSTREAM
