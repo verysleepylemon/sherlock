@@ -3,6 +3,8 @@ Airliners
 Apple Developer
 Apple Discussions
 Archive.org
+Blogger
+BoardGameGeek
 Championat
 Chatujme.cz
 Codolio
@@ -11,11 +13,10 @@ Discord.bio
 GaiaOnline
 GeeksforGeeks
 HackerNews
+HackerRank
 Hashnode
 Hubski
 Instapaper
-LiveJournal
-LushStories
 Minecraft
 ObservableHQ
 Odysee
