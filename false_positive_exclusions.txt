@@ -5,7 +5,6 @@ Apple Discussions
 Archive.org
 Championat
 Chatujme.cz
-Chess
 Codolio
 DeviantArt
 Discord.bio
@@ -16,7 +15,6 @@ Hashnode
 Hubski
 Instapaper
 LushStories
-Minecraft
 ObservableHQ
 Odysee
 PCGamer
@@ -30,7 +28,6 @@ Shelf
 SlideShare
 Splice
 Spotify
-TnAFlix
 Trakt
 TryHackMe
 Velomania
