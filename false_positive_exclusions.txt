@@ -13,6 +13,7 @@ GeeksforGeeks
 HackerNews
 Hashnode
 Hubski
+Ifunny
 Instapaper
 LushStories
 Minecraft
