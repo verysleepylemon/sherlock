@@ -1,3 +1,4 @@
+APClips
 Airliners
 Apple Developer
 Apple Discussions
@@ -12,10 +13,8 @@ GeeksforGeeks
 HackerNews
 Hashnode
 Hubski
-Ifunny
 Instapaper
 LushStories
-Minecraft
 ObservableHQ
 Odysee
 PCGamer
@@ -23,7 +22,6 @@ Rarible
 Realmeye
 Reddit
 ReverbNation
-RocketTube
 Scribd
 Shelf
 SlideShare
@@ -44,3 +42,4 @@ mercadolivre
 opennet
 phpRU
 social.tchncs.de
+xHamster
